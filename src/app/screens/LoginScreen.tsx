@@ -1,0 +1,484 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { useBank } from '../context/BankContext';
+import { Wallet, ChevronRight, Fingerprint, Lock, ShieldCheck, ArrowRight, ArrowLeft, CheckCircle2, Eye, EyeOff, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+export const LoginScreen = () => {
+  const navigate = useNavigate();
+  const { login } = useBank();
+  
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [step, setStep] = useState<'credentials' | 'otp' | 'pin'>('credentials');
+  const [isSuccess, setIsSuccess] = useState(false);
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [enteredPin, setEnteredPin] = useState(['', '', '', '']);
+
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [showResendModal, setShowResendModal] = useState(false);
+  const [showResendSuccess, setShowResendSuccess] = useState(false);
+  const [resendMethod, setResendMethod] = useState('Email');
+
+  // Password Validation
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const isLengthValid = password.length >= 9 && password.length <= 12;
+  const isPasswordValid = hasUpperCase && hasLowerCase && hasNumber && hasSymbol && isLengthValid;
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (step === 'otp' && timeLeft > 0) {
+      timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [step, timeLeft]);
+
+  const handleCredentialsSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email && password) {
+      if (mode === 'register' && !isPasswordValid) return;
+      setStep('otp');
+      setTimeLeft(60);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) value = value.slice(-1);
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePasteOTP = () => {
+    const mockOTP = '123456';
+    setOtp(mockOTP.split(''));
+    document.getElementById('otp-5')?.focus();
+  };
+
+  const handleOtpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.join('').length === 6) {
+      if (mode === 'register') {
+        setStep('pin');
+      } else {
+        login();
+        navigate('/dashboard');
+      }
+    }
+  };
+
+  const handlePinChange = (index: number, value: string) => {
+    if (value.length > 1) value = value.slice(-1);
+    const newPin = [...enteredPin];
+    newPin[index] = value;
+    setEnteredPin(newPin);
+    
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`pin-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enteredPin.join('').length === 4) {
+      setIsSuccess(true);
+      setTimeout(() => {
+        login();
+        navigate('/dashboard');
+      }, 2000);
+    }
+  };
+
+  const handleResendConfirm = () => {
+    setShowResendModal(false);
+    setShowResendSuccess(true);
+    setTimeout(() => {
+      setShowResendSuccess(false);
+      setTimeLeft(60);
+    }, 2000);
+  };
+
+  const goBack = () => {
+    if (step === 'pin') setStep('otp');
+    else if (step === 'otp') setStep('credentials');
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="flex-1 flex flex-col px-6 pt-16 pb-8 h-full bg-[#0F172A] relative overflow-y-auto overflow-x-hidden hide-scrollbar">
+      
+      {/* Resend Modal */}
+      <AnimatePresence>
+        {showResendModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1E293B] rounded-[24px] w-[361px] max-w-full p-6 flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-1 tracking-[0.4px]">How would you like to receive the OTP?</h2>
+                  <p className="text-[#93A2B7] text-xs">Choose your preferred delivery method</p>
+                </div>
+                <button onClick={() => setShowResendModal(false)} className="text-gray-400 hover:text-white -mt-8">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                {['Email', 'SMS', 'Both'].map((method) => (
+                  <button 
+                    key={method}
+                    onClick={() => setResendMethod(method)}
+                    className="w-full bg-[#0F172A] h-[53px] rounded-xl relative flex items-center px-4"
+                  >
+                    <div className={`absolute inset-0 border-2 rounded-xl pointer-events-none transition-colors ${resendMethod === method ? 'border-[#4F46E5]' : 'border-[#334155]'}`} />
+                    <div className="w-5 h-5 rounded-full border-2 border-[#475569] flex items-center justify-center mr-3">
+                      {resendMethod === method && <div className="w-2.5 h-2.5 rounded-full bg-[#4F46E5]" />}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-white text-sm font-bold tracking-[0.4px] leading-tight">{method}</p>
+                      <p className="text-[#93A2B7] text-xs leading-tight">
+                        {method === 'Email' ? 'alex@example.com' : method === 'SMS' ? '+91 9876543210' : 'Email and SMS'}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={handleResendConfirm}
+                className="w-full h-[53px] bg-[#334155] rounded-xl text-white font-bold tracking-[0.4px] hover:bg-[#475569] transition-colors"
+              >
+                Continue
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {showResendSuccess && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[60] bg-[#0c1222]/95 backdrop-blur-sm flex items-center justify-center flex-col"
+          >
+            <div className="w-20 h-20 bg-[#22C55E] rounded-full flex items-center justify-center mb-6">
+              <CheckCircle2 size={40} color="#0c1222" />
+            </div>
+            <h2 className="text-2xl font-bold text-white tracking-[0.4px]">OTP has been sent</h2>
+            <h2 className="text-2xl font-bold text-white tracking-[0.4px]">successfully!</h2>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSuccess && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-[#0F172A]"
+          >
+            <motion.div 
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', bounce: 0.5 }}
+              className="flex flex-col items-center text-center p-6"
+            >
+              <div className="w-24 h-24 rounded-full flex items-center justify-center bg-[#22C55E]/20 mb-6">
+                <CheckCircle2 size={48} color="#22C55E" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Account Created!</h2>
+              <p className="text-gray-400">Your secure Nova Bank account is ready.</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {step !== 'credentials' && !isSuccess && (
+        <button onClick={goBack} className="absolute top-12 left-6 w-10 h-10 flex items-center justify-center bg-[#1E293B] rounded-full z-10">
+          <ArrowLeft size={20} />
+        </button>
+      )}
+
+      <div className="flex-1 flex flex-col justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-10"
+        >
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4F46E5' }}>
+            <Wallet size={32} color="#FFFFFF" />
+          </div>
+          
+          <AnimatePresence mode="wait">
+            {step === 'credentials' && (
+              <motion.div key="cred" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                <h1 className="text-3xl font-bold mb-2">
+                  {mode === 'register' ? 'Create Account' : 'Welcome back'}
+                </h1>
+                <p className="text-gray-400">
+                  {mode === 'register' ? 'Sign up to get started' : 'Sign in to access your account'}
+                </p>
+              </motion.div>
+            )}
+            {step === 'otp' && (
+              <motion.div key="otp" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                <h1 className="text-3xl font-bold mb-2">Verify OTP</h1>
+                <p className="text-gray-400">We've sent a 6-digit code to XXXXXX3210</p>
+              </motion.div>
+            )}
+            {step === 'pin' && (
+              <motion.div key="pin" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                <h1 className="text-3xl font-bold mb-2">Set up PIN</h1>
+                <p className="text-gray-400">Create a 4-digit PIN for quick app access</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          {step === 'credentials' && (
+            <motion.form 
+              key="cred-form"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onSubmit={handleCredentialsSubmit} 
+              className="space-y-4"
+            >
+              {mode === 'register' && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="Alex Doe" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
+                    required
+                  />
+                </div>
+              )}
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-300 ml-1">Email</label>
+                <input 
+                  type="email" 
+                  placeholder="alex@example.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-1 relative">
+                <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white pr-12"
+                    required
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+
+                {mode === 'register' && password.length > 0 && (
+                  <div className="mt-3 bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-[#1E293B]">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className={isLengthValid ? "text-[#22C55E]" : "text-gray-600"} />
+                      <span className={isLengthValid ? "text-gray-300" : "text-gray-500"}>9 to 12 characters</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className={hasUpperCase ? "text-[#22C55E]" : "text-gray-600"} />
+                      <span className={hasUpperCase ? "text-gray-300" : "text-gray-500"}>Uppercase letter</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className={hasLowerCase ? "text-[#22C55E]" : "text-gray-600"} />
+                      <span className={hasLowerCase ? "text-gray-300" : "text-gray-500"}>Lowercase letter</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className={hasNumber ? "text-[#22C55E]" : "text-gray-600"} />
+                      <span className={hasNumber ? "text-gray-300" : "text-gray-500"}>Number</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={14} className={hasSymbol ? "text-[#22C55E]" : "text-gray-600"} />
+                      <span className={hasSymbol ? "text-gray-300" : "text-gray-500"}>Special character (!@#$%^&*)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={mode === 'register' && !isPasswordValid}
+                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 mt-8 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-[#4F46E5] text-white"
+              >
+                <span>{mode === 'register' ? 'Sign Up' : 'Sign In'}</span>
+                <ChevronRight size={20} />
+              </button>
+            </motion.form>
+          )}
+
+          {step === 'otp' && (
+            <motion.form 
+              key="otp-form"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onSubmit={handleOtpSubmit} 
+              className="space-y-6"
+            >
+              <div className="mb-4">
+                <span className="text-white">Time left: {formatTime(timeLeft)}</span>
+              </div>
+
+              <div className="flex justify-between gap-2">
+                {otp.map((digit, i) => (
+                  <input
+                    key={i}
+                    id={`otp-${i}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    className="w-12 h-14 bg-[#1E293B] rounded-xl text-center text-xl font-bold text-white outline-none border border-transparent focus:border-[#4F46E5] transition-colors"
+                  />
+                ))}
+              </div>
+
+              <div className="flex justify-center mt-2">
+                <button 
+                  type="button" 
+                  onClick={handlePasteOTP}
+                  className="bg-[#1E293B] px-4 py-2 rounded-full text-xs font-medium text-gray-300 flex items-center gap-2 border border-[#334155] shadow-lg active:scale-95 transition-transform"
+                >
+                  <span className="w-4 h-4 bg-gray-600 rounded flex items-center justify-center text-[8px]">💬</span>
+                  Paste code from Messages
+                </button>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={otp.join('').length < 6}
+                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-[#4F46E5] text-white"
+              >
+                <span>Verify & Continue</span>
+                <ArrowRight size={20} />
+              </button>
+
+              <div className="text-center text-sm text-[#aea79c]">
+                Didn't receive code?{' '}
+                <button 
+                  type="button" 
+                  disabled={timeLeft > 0}
+                  onClick={() => setShowResendModal(true)}
+                  className={`font-medium transition-colors ${timeLeft > 0 ? 'text-gray-600 cursor-not-allowed' : 'text-[#5184e7]'}`}
+                >
+                  Resend
+                </button>
+              </div>
+            </motion.form>
+          )}
+
+          {step === 'pin' && (
+            <motion.form 
+              key="pin-form"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onSubmit={handlePinSubmit} 
+              className="space-y-6"
+            >
+              <div className="flex justify-center gap-4 mb-8">
+                {enteredPin.map((digit, i) => (
+                  <input
+                    key={i}
+                    id={`pin-${i}`}
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handlePinChange(i, e.target.value)}
+                    className="w-14 h-16 bg-[#1E293B] rounded-2xl text-center text-3xl font-bold text-white outline-none border border-transparent focus:border-[#4F46E5] transition-colors"
+                  />
+                ))}
+              </div>
+
+              <div className="bg-[#1E293B]/50 p-4 rounded-xl flex items-start gap-3 border border-[#1E293B]">
+                <ShieldCheck className="text-[#22C55E] shrink-0 mt-0.5" size={20} />
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Your PIN is securely encrypted. We will ask for this PIN to check balances and authorize transactions.
+                </p>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={enteredPin.join('').length < 4}
+                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-[#4F46E5] text-white"
+              >
+                <Lock size={18} />
+                <span>Complete Registration</span>
+              </button>
+            </motion.form>
+          )}
+        </AnimatePresence>
+
+        {step === 'credentials' && mode === 'login' && (
+          <div className="mt-6 flex flex-col items-center">
+            <button 
+              onClick={() => { login(); navigate('/dashboard'); }}
+              className="w-16 h-16 rounded-full border border-[#1E293B] flex items-center justify-center hover:bg-[#1E293B] transition-colors"
+            >
+              <Fingerprint size={32} style={{ color: '#4F46E5' }} />
+            </button>
+            <span className="text-xs text-gray-400 mt-3">Login with Biometrics</span>
+          </div>
+        )}
+      </div>
+
+      {step === 'credentials' && (
+        <div className="text-center mt-auto pt-6">
+          <button 
+            onClick={() => {
+              setMode(mode === 'register' ? 'login' : 'register');
+              setPassword('');
+            }}
+            className="text-sm text-gray-400"
+          >
+            {mode === 'register' ? 'Already have an account? ' : "Don't have an account? "}
+            <span style={{ color: '#4F46E5' }} className="font-bold">
+              {mode === 'register' ? 'Sign In' : 'Sign Up'}
+            </span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
