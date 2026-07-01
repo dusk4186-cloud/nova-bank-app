@@ -1,11 +1,7 @@
+# Nova Bank — Mobile Banking App
 
-  # Mobile Banking Interface Design
+An interactive React prototype for Nova Bank, a modern mobile banking experience designed with a focus on security, financial clarity, and premium aesthetics.
 
-  This is a code bundle for Mobile Banking Interface Design. The original project is available at https://www.figma.com/design/wH2jXWk0LeA0ReZOJ2OaQT/Mobile-Banking-Interface-Design.
-
-  ## Running the code
-
-  Run `npm i` to install the dependencies.
-
-  Run `npm run dev` to start the development server.
-  
+### Original Design
+The original UI/UX project was created in Figma and is available here:
+[Mobile Banking Interface Design](https://www.figma.com/design/wH2jXWk0LeA0ReZOJ2OaQT/Mobile-Banking-Interface-Design)
