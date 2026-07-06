@@ -23,9 +23,10 @@ export const CardsScreen = () => {
         <h1 className="text-xl font-bold">My Cards</h1>
         <button 
           onClick={() => setShowSettings(true)}
+          aria-label="Card settings"
           className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1E293B] transition-transform active:scale-95"
         >
-          <Settings size={18} />
+          <Settings size={18} aria-hidden="true" />
         </button>
       </div>
 
@@ -59,9 +60,10 @@ export const CardsScreen = () => {
               </p>
               <button 
                 onClick={() => setShowCardNumber(!showCardNumber)}
+                aria-label={showCardNumber ? "Hide card number" : "Show card number"}
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md"
               >
-                {showCardNumber ? <EyeOff size={14} className="text-white" /> : <Eye size={14} className="text-white" />}
+                {showCardNumber ? <EyeOff size={14} className="text-white" aria-hidden="true" /> : <Eye size={14} className="text-white" aria-hidden="true" />}
               </button>
             </div>
 
@@ -91,13 +93,14 @@ export const CardsScreen = () => {
         >
           <button 
             onClick={handleCopy}
+            aria-label="Copy card details"
             className="flex-1 py-4 bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-[#334155] transition-colors"
           >
-            {copied ? <CheckCircle2 size={24} className="text-green-500" /> : <Copy size={24} className="text-[#4F46E5]" />}
+            {copied ? <CheckCircle2 size={24} className="text-green-500" aria-hidden="true" /> : <Copy size={24} className="text-indigo-400" aria-hidden="true" />}
             <span className="text-xs font-medium text-gray-300">Copy Details</span>
           </button>
-          <button className="flex-1 py-4 bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-[#334155] transition-colors">
-            <Lock size={24} className="text-[#EF4444]" />
+          <button aria-label="Lock Card" className="flex-1 py-4 bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-[#334155] transition-colors">
+            <Lock size={24} className="text-[#EF4444]" aria-hidden="true" />
             <span className="text-xs font-medium text-gray-300">Lock Card</span>
           </button>
         </motion.div>
@@ -129,15 +132,15 @@ export const CardsScreen = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500">
-                <Shield size={20} />
+                <Shield size={20} aria-hidden="true" />
               </div>
               <div>
-                <p className="font-bold text-sm">International Usage</p>
+                <p className="font-bold text-sm text-white">International Usage</p>
                 <p className="text-xs text-gray-400">Disabled for security</p>
               </div>
             </div>
             <div className="w-12 h-6 rounded-full bg-[#0F172A] flex items-center px-1 justify-start border border-[#334155]">
-              <div className="w-4 h-4 rounded-full bg-gray-500"></div>
+              <div className="w-4 h-4 rounded-full bg-gray-400"></div>
             </div>
           </div>
         </motion.div>
@@ -151,24 +154,26 @@ export const CardsScreen = () => {
             className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-end justify-center"
           >
             <motion.div 
+              role="dialog"
+              aria-modal="true"
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="bg-[#1E293B] rounded-t-3xl w-full p-6 pb-12 flex flex-col relative"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Card Settings</h2>
-                <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-white">
-                  <X size={24} />
+                <h2 className="text-xl font-bold text-white">Card Settings</h2>
+                <button onClick={() => setShowSettings(false)} aria-label="Close card settings" className="text-gray-400 hover:text-white">
+                  <X size={24} aria-hidden="true" />
                 </button>
               </div>
               
               <div className="space-y-4">
                 <button className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#0F172A] hover:bg-black/20 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-[#4F46E5]/20 flex items-center justify-center text-[#4F46E5]">
-                    <ShieldAlert size={20} />
+                  <div className="w-10 h-10 rounded-full bg-[#4F46E5]/20 flex items-center justify-center text-indigo-400">
+                    <ShieldAlert size={20} aria-hidden="true" />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-sm">Change PIN</p>
+                    <p className="font-bold text-sm text-white">Change PIN</p>
                     <p className="text-xs text-gray-400">Set a new 4-digit PIN</p>
                   </div>
                 </button>
@@ -211,10 +216,11 @@ export const CardsScreen = () => {
           </button>
           <div className="relative -top-5">
             <button 
+              aria-label="Quick Pay"
               className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transform transition-transform"
               style={{ backgroundColor: '#4F46E5' }}
             >
-              <Zap size={26} color="#FFFFFF" strokeWidth={2.5} />
+              <Zap size={26} color="#FFFFFF" strokeWidth={2.5} aria-hidden="true" />
             </button>
           </div>
           <button className="flex flex-col items-center space-y-1 text-[#4F46E5]">
@@ -222,8 +228,8 @@ export const CardsScreen = () => {
             <span className="text-[10px] font-medium">Cards</span>
           </button>
           <button onClick={() => navigate('/profile')} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition-colors">
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-400">
-              <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150" alt="Profile" className="w-full h-full object-cover" />
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-400 bg-[#4F46E5] flex items-center justify-center text-white text-[10px] font-bold">
+              {user?.name?.charAt(0).toUpperCase() || 'A'}
             </div>
             <span className="text-[10px] font-medium">Profile</span>
           </button>

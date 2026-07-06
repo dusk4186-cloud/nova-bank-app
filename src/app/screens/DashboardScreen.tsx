@@ -48,10 +48,11 @@ const AccountBalanceRow = ({ acc, formatCurrency }: { acc: any, formatCurrency: 
             <p className="font-bold text-xl text-gray-400 tracking-widest mt-1">••••••</p>
           )}
           <button 
-            onClick={() => setIsRevealed(!isRevealed)} 
+            onClick={() => setIsRevealed(!isRevealed)}
+            aria-label={isRevealed ? "Hide balance" : "Show balance"}
             className="text-gray-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#1E293B]"
           >
-            {isRevealed ? <EyeOff size={18} /> : <Eye size={18} />}
+            {isRevealed ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -142,7 +143,7 @@ export const DashboardScreen = () => {
     
     // Check if complete
     if (newPin.join('').length === 4) {
-      if (newPin.join('') === pin || newPin.join('') === '1234') { 
+      if (newPin.join('') === pin) { 
         setTimeout(() => setBalanceRevealed(true), 300);
       } else {
         setPinError(true);
@@ -162,12 +163,44 @@ export const DashboardScreen = () => {
     }, 300);
   };
 
-  const insightsData = [
-    { name: 'Shopping', value: 35000, color: '#4F46E5' },
-    { name: 'Food', value: 12500, color: '#22C55E' },
-    { name: 'Travel', value: 8000, color: '#EAB308' },
-    { name: 'Bills', value: 15000, color: '#EC4899' },
-  ];
+  const calculateInsights = () => {
+    let shopping = 0;
+    let food = 0;
+    let travel = 0;
+    let bills = 0;
+    let others = 0;
+    let total = 0;
+
+    transactions.forEach(tx => {
+      if (tx.amount < 0) { // Expenses only
+        const amount = Math.abs(tx.amount);
+        total += amount;
+        const desc = tx.description.toLowerCase();
+        
+        if (desc.includes('shopping') || desc.includes('amazon') || desc.includes('flipkart') || desc.includes('mall')) shopping += amount;
+        else if (desc.includes('food') || desc.includes('coffee') || desc.includes('restaurant') || desc.includes('zomato') || desc.includes('swiggy')) food += amount;
+        else if (desc.includes('travel') || desc.includes('uber') || desc.includes('flight') || desc.includes('train')) travel += amount;
+        else if (desc.includes('bill') || desc.includes('rent') || desc.includes('emi') || desc.includes('tax')) bills += amount;
+        else others += amount;
+      }
+    });
+
+    const data = [];
+    if (shopping > 0) data.push({ name: 'Shopping', value: shopping, color: '#4F46E5' });
+    if (food > 0) data.push({ name: 'Food', value: food, color: '#22C55E' });
+    if (travel > 0) data.push({ name: 'Travel', value: travel, color: '#EAB308' });
+    if (bills > 0) data.push({ name: 'Bills & Rent', value: bills, color: '#EC4899' });
+    if (others > 0) data.push({ name: 'Others', value: others, color: '#8B5CF6' });
+
+    // Fallback if no expenses
+    if (data.length === 0) {
+      data.push({ name: 'No Data', value: 1, color: '#334155' });
+    }
+
+    return { data, total };
+  };
+
+  const { data: insightsData, total: totalSpent } = calculateInsights();
 
   const handleServiceClick = (service: any) => {
     if (service.hasBill) {
@@ -200,16 +233,14 @@ export const DashboardScreen = () => {
       {/* Header */}
       <div className="px-6 pt-12 pb-6 flex items-center justify-between z-10">
         <div className="flex items-center space-x-3">
-          <div 
+          <button 
+            type="button"
             onClick={() => navigate('/profile')}
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#1E293B] cursor-pointer"
+            aria-label="Go to profile"
+            className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#1E293B] cursor-pointer bg-[#4F46E5] flex items-center justify-center text-white font-bold"
           >
-            <img 
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150" 
-              alt="User" 
-              className="w-full h-full object-cover"
-            />
-          </div>
+            {user?.name?.charAt(0).toUpperCase() || 'A'}
+          </button>
           <div>
             <p className="text-xs text-gray-400">Good morning,</p>
             <p className="text-sm font-bold">{user?.name || 'Alex Doe'}</p>
@@ -218,24 +249,27 @@ export const DashboardScreen = () => {
         <div className="flex items-center space-x-3">
           <button 
             onClick={() => setShowMyQr(true)}
-            className="w-10 h-10 rounded-full flex items-center justify-center relative bg-[#1E293B] transition-transform active:scale-95 text-[#4F46E5]"
+            aria-label="Show my QR Code"
+            className="w-10 h-10 rounded-full flex items-center justify-center relative bg-[#1E293B] transition-transform active:scale-95 text-indigo-400"
           >
-            <QrCode size={18} />
+            <QrCode size={18} aria-hidden="true" />
           </button>
           <button 
             onClick={() => setShowSearch(true)}
+            aria-label="Search"
             className="w-10 h-10 rounded-full flex items-center justify-center relative bg-[#1E293B] transition-transform active:scale-95"
           >
-            <Search size={18} color="#FFFFFF" />
+            <Search size={18} color="#FFFFFF" aria-hidden="true" />
           </button>
           <button 
             onClick={() => {
               setShowNotifications(true);
               setHasUnreadNotifications(false);
             }}
+            aria-label="Notifications"
             className="w-10 h-10 rounded-full flex items-center justify-center relative bg-[#1E293B] transition-transform active:scale-95"
           >
-            <Bell size={18} color="#FFFFFF" />
+            <Bell size={18} color="#FFFFFF" aria-hidden="true" />
             {hasUnreadNotifications && <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }}></span>}
           </button>
         </div>
@@ -338,24 +372,25 @@ export const DashboardScreen = () => {
         </motion.div>
 
         {/* Quick Send Banner */}
-        <motion.div
+        <motion.button
+          type="button"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           onClick={() => navigate('/transfer')}
-          className="bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] rounded-3xl p-6 relative overflow-hidden shadow-xl cursor-pointer"
+          className="w-full text-left bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] rounded-3xl p-6 relative overflow-hidden shadow-xl cursor-pointer"
         >
           <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl"></div>
           <div className="flex justify-between items-center relative z-10">
             <div>
-              <h3 className="font-bold text-lg mb-1">Transfer Money</h3>
+              <h3 className="font-bold text-lg mb-1 text-white">Transfer Money</h3>
               <p className="text-white/80 text-sm">Send instantly via UPI</p>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
-              <ChevronRight size={24} />
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md text-white">
+              <ChevronRight size={24} aria-hidden="true" />
             </div>
           </div>
-        </motion.div>
+        </motion.button>
 
       </div>
 
@@ -369,6 +404,8 @@ export const DashboardScreen = () => {
             className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-center justify-center p-6"
           >
             <motion.div 
+              role="dialog"
+              aria-modal="true"
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#1E293B] rounded-3xl w-full max-w-sm p-6 flex flex-col items-center relative text-center"
             >
@@ -414,14 +451,14 @@ export const DashboardScreen = () => {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="bg-[#1E293B] rounded-t-3xl w-full p-6 pb-12 flex flex-col relative min-h-[50vh] border-t border-[#334155]/50 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]"
             >
-              <button onClick={closeBalanceModal} className="absolute top-6 right-6 text-gray-400 hover:text-white bg-[#0F172A] w-8 h-8 rounded-full flex items-center justify-center">
-                <X size={18} />
+              <button onClick={closeBalanceModal} aria-label="Close Check Balance" className="absolute top-6 right-6 text-gray-400 hover:text-white bg-[#0F172A] w-8 h-8 rounded-full flex items-center justify-center">
+                <X size={18} aria-hidden="true" />
               </button>
               
               {!balanceRevealed ? (
                 <div className="flex flex-col items-center mt-8">
-                  <ShieldCheck size={48} className="text-[#4F46E5] mb-4" />
-                  <h2 className="text-xl font-bold mb-2">Enter UPI PIN</h2>
+                  <ShieldCheck size={48} className="text-indigo-400 mb-4" />
+                  <h2 className="text-xl font-bold mb-2 text-white">Enter UPI PIN</h2>
                   <p className="text-gray-400 text-sm mb-8 text-center">Enter your 4-digit PIN to securely view your account balances.</p>
                   
                   <div className="flex justify-center gap-4 mb-4">
@@ -430,15 +467,18 @@ export const DashboardScreen = () => {
                         key={i}
                         id={`bal-pin-${i}`}
                         type="password"
+                        aria-label={`PIN digit ${i + 1}`}
                         inputMode="numeric"
                         maxLength={1}
                         value={digit}
                         onChange={(e) => handleBalancePinChange(i, e.target.value)}
-                        className={`w-14 h-16 bg-[#0F172A] rounded-2xl text-center text-3xl font-bold text-white outline-none border transition-colors ${pinError ? 'border-red-500' : 'border-transparent focus:border-[#4F46E5]'}`}
+                        className={`w-14 h-16 bg-[#0F172A] rounded-2xl text-center text-3xl font-bold text-white outline-none border transition-colors ${pinError ? 'border-red-500' : 'border-transparent focus:border-indigo-400'}`}
                       />
                     ))}
                   </div>
-                  {pinError && <p className="text-red-500 text-sm animate-pulse">Incorrect PIN. Try again.</p>}
+                  <div aria-live="polite">
+                    {pinError && <p className="text-red-500 text-sm animate-pulse">Incorrect PIN. Try again.</p>}
+                  </div>
                 </div>
               ) : (
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mt-8">
@@ -469,13 +509,15 @@ export const DashboardScreen = () => {
             className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-center justify-center p-6"
           >
             <motion.div 
+              role="dialog"
+              aria-modal="true"
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#1E293B] rounded-3xl w-full max-w-sm p-6 flex flex-col items-center relative"
             >
-              <button onClick={() => setShowMyQr(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
-                <X size={24} />
+              <button onClick={() => setShowMyQr(false)} aria-label="Close QR Code" className="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <X size={24} aria-hidden="true" />
               </button>
-              <h2 className="text-xl font-bold mb-6">Receive Money</h2>
+              <h2 className="text-xl font-bold mb-6 text-white">Receive Money</h2>
               
               <div className="bg-white p-4 rounded-2xl mb-6">
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=alex.doe@novabank&pn=Alex%20Doe" alt="QR Code" className="w-48 h-48" />
@@ -499,17 +541,19 @@ export const DashboardScreen = () => {
           <motion.div 
             initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            role="dialog"
+            aria-modal="true"
             className="absolute inset-0 z-50 bg-[#0F172A] flex flex-col"
           >
             <div className="px-6 pt-12 pb-4 flex items-center justify-between border-b border-[#1E293B]">
-              <h2 className="text-xl font-bold">Spending Insights</h2>
-              <button onClick={() => setShowInsights(false)} className="w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center">
-                <X size={20} />
+              <h2 className="text-xl font-bold text-white">Spending Insights</h2>
+              <button onClick={() => setShowInsights(false)} aria-label="Close Insights" className="w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-white hover:bg-[#334155] transition-colors">
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-8">
               <h3 className="text-gray-400 text-sm mb-1">Total Spent this Month</h3>
-              <p className="text-3xl font-bold mb-8">{formatCurrency(70500)}</p>
+              <p className="text-3xl font-bold mb-8">{formatCurrency(totalSpent)}</p>
               
               <div className="h-64 w-full mb-8 relative">
                 <ResponsiveContainer width="100%" height="100%">
@@ -519,7 +563,11 @@ export const DashboardScreen = () => {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '12px', color: '#fff' }} />
+                    <Tooltip 
+                      formatter={(value: number) => formatCurrency(value)} 
+                      contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '12px', color: '#fff' }} 
+                      itemStyle={{ color: '#fff' }}
+                    />
                   </RechartsPieChart>
                 </ResponsiveContainer>
               </div>
@@ -547,12 +595,14 @@ export const DashboardScreen = () => {
           <motion.div 
             initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            role="dialog"
+            aria-modal="true"
             className="absolute inset-0 z-50 bg-[#0F172A] flex flex-col"
           >
             <div className="px-6 pt-12 pb-4 flex items-center justify-between border-b border-[#1E293B]">
-              <h2 className="text-xl font-bold">Notifications</h2>
-              <button onClick={() => setShowNotifications(false)} className="w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center">
-                <X size={20} />
+              <h2 className="text-xl font-bold text-white">Notifications</h2>
+              <button onClick={() => setShowNotifications(false)} aria-label="Close Notifications" className="w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-white hover:bg-[#334155] transition-colors">
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
@@ -578,15 +628,18 @@ export const DashboardScreen = () => {
         {showSearch && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
             className="absolute inset-0 z-50 bg-[#0F172A]/95 backdrop-blur-md flex flex-col p-6"
           >
             <div className="pt-8 flex items-center space-x-3">
               <div className="flex-1 flex items-center bg-[#1E293B] rounded-xl px-4 py-3">
-                <Search size={20} className="text-gray-400 mr-3" />
+                <Search size={20} className="text-gray-400 mr-3" aria-hidden="true" />
                 <input 
                   type="text" autoFocus value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="e.g., 'Rent', 'John', '₹500'" 
-                  className="bg-transparent outline-none flex-1 text-white placeholder-gray-500"
+                  aria-label="Search transactions"
+                  className="bg-transparent outline-none flex-1 text-white placeholder-gray-400"
                 />
               </div>
               <button onClick={() => setShowSearch(false)} className="text-sm font-medium text-[#4F46E5]">Cancel</button>
@@ -626,10 +679,11 @@ export const DashboardScreen = () => {
                 if(el) { el.style.transform = 'scale(0.9)'; setTimeout(() => el.style.transform = 'scale(1)', 150); }
               }}
               id="scan-btn"
+              aria-label="Scan QR Code"
               className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transform transition-transform"
               style={{ backgroundColor: '#4F46E5' }}
             >
-              <Scan size={26} color="#FFFFFF" strokeWidth={2.5} />
+              <Scan size={26} color="#FFFFFF" strokeWidth={2.5} aria-hidden="true" />
             </button>
           </div>
           <button onClick={() => navigate('/cards')} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition-colors">
@@ -637,8 +691,8 @@ export const DashboardScreen = () => {
             <span className="text-[10px] font-medium">Cards</span>
           </button>
           <button onClick={() => navigate('/profile')} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition-colors">
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-400">
-              <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150&h=150" alt="Profile" className="w-full h-full object-cover" />
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-400 bg-[#4F46E5] flex items-center justify-center text-white text-[10px] font-bold">
+              {user?.name?.charAt(0).toUpperCase() || 'A'}
             </div>
             <span className="text-[10px] font-medium">Profile</span>
           </button>

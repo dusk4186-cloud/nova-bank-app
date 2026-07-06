@@ -6,16 +6,20 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export const LoginScreen = () => {
   const navigate = useNavigate();
-  const { login } = useBank();
+  const { login, user: existingUser } = useBank();
   
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [step, setStep] = useState<'credentials' | 'otp' | 'pin'>('credentials');
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
+  const [step, setStep] = useState<'credentials' | 'otp' | 'pin' | 'biometric_setup'>('credentials');
   const [isSuccess, setIsSuccess] = useState(false);
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
   
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [enteredPin, setEnteredPin] = useState(['', '', '', '']);
@@ -42,10 +46,19 @@ export const LoginScreen = () => {
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
+  const isFormValid = () => {
+    if (mode === 'login') {
+      if (authMethod === 'email') return email.trim().length > 0 && password.length > 0;
+      if (authMethod === 'phone') return phone.replace(/\D/g, '').length >= 10;
+    } else {
+      return name.trim().length > 0 && email.trim().length > 0 && phone.replace(/\D/g, '').length >= 10 && isPasswordValid;
+    }
+    return false;
+  };
+
   const handleCredentialsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      if (mode === 'register' && !isPasswordValid) return;
+    if (isFormValid()) {
       setStep('otp');
       setTimeLeft(60);
     }
@@ -75,10 +88,24 @@ export const LoginScreen = () => {
       if (mode === 'register') {
         setStep('pin');
       } else {
-        login();
-        navigate('/dashboard');
+        executeLogin();
       }
     }
+  };
+
+  const executeLogin = (bioPref = biometricEnabled) => {
+    const finalName = mode === 'register' ? name : (existingUser?.name || name || 'Alex Doe');
+    const finalEmail = email || existingUser?.email || 'alex@example.com';
+    const finalPhone = phone || existingUser?.phone || '9876543210';
+    
+    login({
+      name: finalName,
+      email: finalEmail,
+      phone: finalPhone,
+      password: password,
+      biometricEnabled: bioPref
+    }, enteredPin.join(''));
+    navigate('/dashboard');
   };
 
   const handlePinChange = (index: number, value: string) => {
@@ -96,12 +123,23 @@ export const LoginScreen = () => {
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (enteredPin.join('').length === 4) {
-      setIsSuccess(true);
-      setTimeout(() => {
-        login();
-        navigate('/dashboard');
-      }, 2000);
+      if (mode === 'register') {
+        setStep('biometric_setup');
+      } else {
+        setIsSuccess(true);
+        setTimeout(() => {
+          executeLogin();
+        }, 2000);
+      }
     }
+  };
+
+  const handleBiometricSubmit = (enable: boolean) => {
+    setBiometricEnabled(enable);
+    setIsSuccess(true);
+    setTimeout(() => {
+      executeLogin(enable);
+    }, 2000);
   };
 
   const handleResendConfirm = () => {
@@ -114,7 +152,8 @@ export const LoginScreen = () => {
   };
 
   const goBack = () => {
-    if (step === 'pin') setStep('otp');
+    if (step === 'biometric_setup') setStep('pin');
+    else if (step === 'pin') setStep('otp');
     else if (step === 'otp') setStep('credentials');
   };
 
@@ -135,6 +174,8 @@ export const LoginScreen = () => {
             className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div 
+              role="dialog"
+              aria-modal="true"
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#1E293B] rounded-[24px] w-[361px] max-w-full p-6 flex flex-col"
             >
@@ -143,8 +184,8 @@ export const LoginScreen = () => {
                   <h2 className="text-xl font-bold text-white mb-1 tracking-[0.4px]">How would you like to receive the OTP?</h2>
                   <p className="text-[#93A2B7] text-xs">Choose your preferred delivery method</p>
                 </div>
-                <button onClick={() => setShowResendModal(false)} className="text-gray-400 hover:text-white -mt-8">
-                  <X size={24} />
+                <button onClick={() => setShowResendModal(false)} aria-label="Close dialog" className="text-gray-400 hover:text-white -mt-8">
+                  <X size={24} aria-hidden="true" />
                 </button>
               </div>
 
@@ -201,6 +242,8 @@ export const LoginScreen = () => {
             className="absolute inset-0 z-50 flex items-center justify-center bg-[#0F172A]"
           >
             <motion.div 
+              role="alert"
+              aria-live="assertive"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', bounce: 0.5 }}
@@ -217,8 +260,8 @@ export const LoginScreen = () => {
       </AnimatePresence>
 
       {step !== 'credentials' && !isSuccess && (
-        <button onClick={goBack} className="absolute top-12 left-6 w-10 h-10 flex items-center justify-center bg-[#1E293B] rounded-full z-10">
-          <ArrowLeft size={20} />
+        <button onClick={goBack} aria-label="Go back" className="absolute top-12 left-6 w-10 h-10 flex items-center justify-center bg-[#1E293B] rounded-full z-10">
+          <ArrowLeft size={20} aria-hidden="true" />
         </button>
       )}
 
@@ -246,13 +289,19 @@ export const LoginScreen = () => {
             {step === 'otp' && (
               <motion.div key="otp" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Verify OTP</h1>
-                <p className="text-gray-400">We've sent a 6-digit code to XXXXXX3210</p>
+                <p className="text-gray-400">Secure your account</p>
               </motion.div>
             )}
             {step === 'pin' && (
               <motion.div key="pin" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Set up PIN</h1>
                 <p className="text-gray-400">Create a 4-digit PIN for quick app access</p>
+              </motion.div>
+            )}
+            {step === 'biometric_setup' && (
+              <motion.div key="bio" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                <h1 className="text-3xl font-bold mb-2">Enable Biometrics</h1>
+                <p className="text-gray-400">Use your fingerprint for faster and more secure logins</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -266,81 +315,145 @@ export const LoginScreen = () => {
               onSubmit={handleCredentialsSubmit} 
               className="space-y-4"
             >
+              {mode === 'login' && (
+                <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6">
+                  <button 
+                    type="button"
+                    onClick={() => setAuthMethod('email')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${authMethod === 'email' ? 'bg-[#4F46E5] text-white' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Email
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setAuthMethod('phone')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${authMethod === 'phone' ? 'bg-[#4F46E5] text-white' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Phone
+                  </button>
+                </div>
+              )}
+              
               {mode === 'register' && (
+                <>
+                  <div className="space-y-1">
+                    <label htmlFor="full-name" className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+                    <input 
+                      id="full-name"
+                      type="text" 
+                      placeholder="Alex Doe" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label htmlFor="phone-reg" className="text-sm font-medium text-gray-300 ml-1">Phone Number</label>
+                    <div className="flex bg-[#1E293B] rounded-xl overflow-hidden border border-transparent focus-within:border-[#4F46E5] transition-colors">
+                      <div className="px-4 py-4 bg-[#0F172A]/50 text-gray-400 font-medium" aria-hidden="true">+91</div>
+                      <input 
+                        id="phone-reg"
+                        type="tel" 
+                        placeholder="98765 43210" 
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full px-4 py-4 bg-transparent outline-none text-white font-medium"
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {(mode === 'register' || authMethod === 'email') && (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+                  <label htmlFor="email" className="text-sm font-medium text-gray-300 ml-1">Email</label>
                   <input 
-                    type="text" 
-                    placeholder="Alex Doe" 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    id="email"
+                    type="email" 
+                    placeholder="alex@example.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
                     required
                   />
                 </div>
               )}
-              
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300 ml-1">Email</label>
-                <input 
-                  type="email" 
-                  placeholder="alex@example.com" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-1 relative">
-                <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
-                <div className="relative">
-                  <input 
-                    type={showPassword ? 'text' : 'password'} 
-                    placeholder="••••••••" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white pr-12"
-                    required
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
 
-                {mode === 'register' && password.length > 0 && (
-                  <div className="mt-3 bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-[#1E293B]">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={isLengthValid ? "text-[#22C55E]" : "text-gray-600"} />
-                      <span className={isLengthValid ? "text-gray-300" : "text-gray-500"}>9 to 12 characters</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasUpperCase ? "text-[#22C55E]" : "text-gray-600"} />
-                      <span className={hasUpperCase ? "text-gray-300" : "text-gray-500"}>Uppercase letter</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasLowerCase ? "text-[#22C55E]" : "text-gray-600"} />
-                      <span className={hasLowerCase ? "text-gray-300" : "text-gray-500"}>Lowercase letter</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasNumber ? "text-[#22C55E]" : "text-gray-600"} />
-                      <span className={hasNumber ? "text-gray-300" : "text-gray-500"}>Number</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasSymbol ? "text-[#22C55E]" : "text-gray-600"} />
-                      <span className={hasSymbol ? "text-gray-300" : "text-gray-500"}>Special character (!@#$%^&*)</span>
-                    </div>
+              {mode === 'login' && authMethod === 'phone' && (
+                <div className="space-y-1">
+                  <label htmlFor="phone-login" className="text-sm font-medium text-gray-300 ml-1">Phone Number</label>
+                  <div className="flex bg-[#1E293B] rounded-xl overflow-hidden border border-transparent focus-within:border-[#4F46E5] transition-colors">
+                    <div className="px-4 py-4 bg-[#0F172A]/50 text-gray-400 font-medium" aria-hidden="true">+91</div>
+                    <input 
+                      id="phone-login"
+                      type="tel" 
+                      placeholder="98765 43210" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-4 py-4 bg-transparent outline-none text-white font-medium"
+                      required
+                    />
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+              
+              {/* Password field - hide if logging in with phone */}
+              {!(mode === 'login' && authMethod === 'phone') && (
+                <div className="space-y-1 relative">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-300 ml-1">Password</label>
+                  <div className="relative">
+                    <input 
+                      id="password"
+                      type={showPassword ? 'text' : 'password'} 
+                      placeholder="••••••••" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white pr-12"
+                      required
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
+                    </button>
+                  </div>
+
+                  {mode === 'register' && password.length > 0 && (
+                    <div aria-live="polite" className="mt-3 bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-[#1E293B]">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className={isLengthValid ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
+                        <span className={isLengthValid ? "text-gray-300" : "text-gray-400"}>9 to 12 characters</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className={hasUpperCase ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
+                        <span className={hasUpperCase ? "text-gray-300" : "text-gray-400"}>Uppercase letter</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className={hasLowerCase ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
+                        <span className={hasLowerCase ? "text-gray-300" : "text-gray-400"}>Lowercase letter</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className={hasNumber ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
+                        <span className={hasNumber ? "text-gray-300" : "text-gray-400"}>Number</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={14} className={hasSymbol ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
+                        <span className={hasSymbol ? "text-gray-300" : "text-gray-400"}>Special character (!@#$%^&*)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <button 
                 type="submit" 
-                disabled={mode === 'register' && !isPasswordValid}
+                disabled={!isFormValid()}
                 className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 mt-8 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-[#4F46E5] text-white"
               >
                 <span>{mode === 'register' ? 'Sign Up' : 'Sign In'}</span>
@@ -356,8 +469,16 @@ export const LoginScreen = () => {
               onSubmit={handleOtpSubmit} 
               className="space-y-6"
             >
-              <div className="mb-4">
-                <span className="text-white">Time left: {formatTime(timeLeft)}</span>
+              <div className="mb-6 text-center">
+                <p className="text-gray-300 text-base leading-relaxed">
+                  Enter the 6-digit code sent to <br />
+                  {mode === 'login' && authMethod === 'email' ? (
+                    <>your email <span className="text-white font-bold text-lg">{email || 'alex@example.com'}</span></>
+                  ) : (
+                    <span className="text-white font-bold text-lg">+91 {phone || '9876543210'}</span>
+                  )}
+                </p>
+                <div className="mt-5 text-white font-medium">Time left: {formatTime(timeLeft)}</div>
               </div>
 
               <div className="flex justify-between gap-2">
@@ -444,19 +565,47 @@ export const LoginScreen = () => {
                 className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-[#4F46E5] text-white"
               >
                 <Lock size={18} />
-                <span>Complete Registration</span>
+                <span>{mode === 'register' ? 'Continue' : 'Complete Login'}</span>
               </button>
             </motion.form>
           )}
+
+          {step === 'biometric_setup' && (
+            <motion.div
+              key="bio-form"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="space-y-8 flex flex-col items-center pt-8"
+            >
+              <div className="w-24 h-24 rounded-full bg-[#1E293B] flex items-center justify-center border border-[#334155]">
+                <Fingerprint size={48} className="text-indigo-400" />
+              </div>
+              
+              <div className="w-full space-y-3">
+                <button 
+                  onClick={() => handleBiometricSubmit(true)}
+                  className="w-full py-4 rounded-xl font-bold transition-all active:scale-[0.98] bg-[#4F46E5] text-white"
+                >
+                  Enable Biometrics
+                </button>
+                <button 
+                  onClick={() => handleBiometricSubmit(false)}
+                  className="w-full py-4 rounded-xl font-bold transition-all active:scale-[0.98] bg-[#1E293B] text-gray-300 border border-[#334155] hover:bg-[#334155]"
+                >
+                  Skip for Now
+                </button>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
-        {step === 'credentials' && mode === 'login' && (
+        {step === 'credentials' && mode === 'login' && existingUser?.biometricEnabled && (
           <div className="mt-6 flex flex-col items-center">
             <button 
-              onClick={() => { login(); navigate('/dashboard'); }}
+              onClick={() => { executeLogin(true); }}
+              aria-label="Login with Biometrics"
               className="w-16 h-16 rounded-full border border-[#1E293B] flex items-center justify-center hover:bg-[#1E293B] transition-colors"
             >
-              <Fingerprint size={32} style={{ color: '#4F46E5' }} />
+              <Fingerprint size={32} className="text-indigo-400" aria-hidden="true" />
             </button>
             <span className="text-xs text-gray-400 mt-3">Login with Biometrics</span>
           </div>

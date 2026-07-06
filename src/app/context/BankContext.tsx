@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+export type User = {
+  name: string;
+  email: string;
+  phone: string;
+  password?: string;
+  biometricEnabled: boolean;
+};
+
 export type Transaction = {
   id: string;
   type: 'deposit' | 'withdrawal' | 'transfer';
@@ -17,19 +25,20 @@ export type Account = {
 };
 
 type BankContextType = {
-  user: any;
+  user: User | null;
   pin: string;
   accounts: Account[];
   transactions: Transaction[];
-  login: () => void;
+  login: (userData: User, pinCode: string) => void;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
   transfer: (fromId: string, to: string, amount: number, note: string) => void;
 };
 
 const BankContext = createContext<BankContextType | undefined>(undefined);
 
 export const BankProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<{name: string} | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [pin, setPin] = useState<string>('1234'); // Default mock PIN
   
   const [accounts, setAccounts] = useState<Account[]>([
@@ -44,12 +53,17 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
     { id: 't4', type: 'deposit', amount: 1500.00, date: new Date(Date.now() - 86400000 * 4).toISOString(), description: 'UPI Transfer' },
   ]);
 
-  const login = () => {
-    setUser({ name: 'Alex Doe' });
+  const login = (userData: User, pinCode: string) => {
+    setUser(userData);
+    if (pinCode) setPin(pinCode);
   };
 
   const logout = () => {
     setUser(null);
+  };
+
+  const updateUser = (updates: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updates } : null);
   };
 
   const transfer = (fromId: string, to: string, amount: number, note: string) => {
@@ -73,7 +87,7 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <BankContext.Provider value={{ user, pin, accounts, transactions, login, logout, transfer }}>
+    <BankContext.Provider value={{ user, pin, accounts, transactions, login, logout, updateUser, transfer }}>
       {children}
     </BankContext.Provider>
   );

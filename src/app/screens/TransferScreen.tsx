@@ -81,12 +81,15 @@ export const TransferScreen = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col relative bg-[#0F172A] h-full" onClick={() => setIsAmountFocused(false)}>
+    <div className="flex-1 flex flex-col relative bg-[#0F172A] h-full" role="presentation" onClick={() => setIsAmountFocused(false)}>
       <AnimatePresence>
         {isSuccess && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            role="dialog"
+            aria-modal="true"
+            aria-live="assertive"
             className="absolute inset-0 z-50 flex items-center justify-center bg-[#0F172A]"
           >
             <motion.div 
@@ -118,6 +121,7 @@ export const TransferScreen = () => {
       <div className="px-6 pt-12 pb-4 flex items-center border-b border-[#1E293B]">
         <button 
           onClick={() => navigate(-1)} 
+          aria-label="Go back"
           className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1E293B]"
         >
           <ArrowLeft size={20} />
@@ -143,16 +147,17 @@ export const TransferScreen = () => {
           ))}
         </div>
 
-        <div 
+        <button 
+          type="button"
           onClick={(e) => { e.stopPropagation(); setIsAmountFocused(true); }}
-          className={`flex flex-col items-center justify-center py-6 px-4 rounded-3xl transition-all cursor-pointer my-4 ${
-            isAmountFocused ? 'bg-[#1E293B] ring-2 ring-[#4F46E5] shadow-[0_0_20px_rgba(79,70,229,0.15)]' : 'border border-transparent'
+          className={`w-full flex flex-col items-center justify-center py-6 px-4 rounded-3xl transition-all cursor-pointer my-4 ${
+            isAmountFocused ? 'bg-[#1E293B] ring-2 ring-[#4F46E5] shadow-[0_0_20px_rgba(79,70,229,0.15)]' : 'border border-transparent hover:bg-[#1E293B]/50'
           }`}
         >
-          <span className="text-[#4F46E5] font-bold mb-2">Amount</span>
+          <span className="text-indigo-400 font-bold mb-2">Amount</span>
           <div className="flex items-center justify-center relative min-w-[120px]">
             <span className={`text-4xl font-bold ${isInsufficient ? 'text-red-500' : 'text-gray-400'} mr-1`}>₹</span>
-            <span className={`text-6xl tracking-tighter ${amount === '0' ? 'text-gray-500' : isInsufficient ? 'text-red-500' : 'text-white'}`} style={{ fontFamily: 'Inter', fontWeight: 600 }}>
+            <span className={`text-6xl tracking-tighter ${amount === '0' ? 'text-gray-400' : isInsufficient ? 'text-red-500' : 'text-white'}`} style={{ fontFamily: 'Inter', fontWeight: 600 }}>
               {amount}
             </span>
             <AnimatePresence>
@@ -170,32 +175,33 @@ export const TransferScreen = () => {
           
           <AnimatePresence mode="wait">
             {isInsufficient ? (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex items-center gap-1.5 mt-4 text-red-500 bg-red-500/10 px-3 py-1.5 rounded-full">
-                <Info size={14} />
+              <motion.div aria-live="polite" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex items-center gap-1.5 mt-4 text-red-500 bg-red-500/10 px-3 py-1.5 rounded-full">
+                <Info size={14} aria-hidden="true" />
                 <span className="text-xs font-bold">Insufficient Balance</span>
               </motion.div>
             ) : (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-gray-400 mt-4">
+              <motion.p aria-live="polite" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-gray-400 mt-4">
                 Available Balance: <span className="font-bold text-white">{formatCurrency(activeAccount?.balance || 0)}</span>
               </motion.p>
             )}
           </AnimatePresence>
-        </div>
+        </button>
 
         <div className="space-y-4">
           <div className="bg-[#1E293B] rounded-2xl p-4">
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-gray-400 block">To Recipient</label>
-              <button onClick={() => setIsFavorite(!isFavorite)} className="text-yellow-400 hover:scale-110 transition-transform">
-                <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
+              <label htmlFor="recipient-input" className="text-xs text-gray-400 block">To Recipient</label>
+              <button onClick={() => setIsFavorite(!isFavorite)} aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"} className="text-yellow-400 hover:scale-110 transition-transform">
+                <Star size={16} fill={isFavorite ? "currentColor" : "none"} aria-hidden="true" />
               </button>
             </div>
             <input 
+              id="recipient-input"
               type="text" 
               placeholder="UPI ID, Account Number, or Phone" 
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
-              className="w-full bg-transparent outline-none font-medium placeholder-gray-500 mb-4 text-white"
+              className="w-full bg-transparent outline-none font-medium placeholder-gray-400 mb-4 text-white"
             />
             
             <div className="pt-3 border-t border-[#334155]/50">
@@ -219,13 +225,14 @@ export const TransferScreen = () => {
           </div>
           
           <div className="bg-[#1E293B] rounded-2xl p-4">
-            <label className="text-xs text-gray-400 block mb-1">Note (Optional)</label>
+            <label htmlFor="note-input" className="text-xs text-gray-400 block mb-1">Note (Optional)</label>
             <input 
+              id="note-input"
               type="text" 
               placeholder="What's this for?" 
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full bg-transparent outline-none font-medium placeholder-gray-500 text-white"
+              className="w-full bg-transparent outline-none font-medium placeholder-gray-400 text-white"
             />
           </div>
         </div>
@@ -234,6 +241,7 @@ export const TransferScreen = () => {
       {/* Bottom Fixed Area */}
       <div 
         className="bg-[#0F172A] border-t border-[#1E293B]/50 px-6 pb-6 pt-4 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-40 flex flex-col" 
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
       >
         <AnimatePresence initial={false}>
@@ -271,9 +279,10 @@ export const TransferScreen = () => {
                 </button>
                 <button 
                   onClick={handleDelete}
+                  aria-label="Delete last digit"
                   className="h-14 rounded-2xl flex items-center justify-center bg-[#1E293B] hover:bg-[#334155] transition-colors active:scale-95 text-white"
                 >
-                  <ArrowLeft size={24} />
+                  <ArrowLeft size={24} aria-hidden="true" />
                 </button>
               </div>
             </motion.div>

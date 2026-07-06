@@ -74,33 +74,36 @@ export const HistoryScreen = () => {
             <motion.div key="normal-header" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex items-center justify-between">
               <button 
                 onClick={() => navigate(-1)} 
+                aria-label="Go back"
                 className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1E293B]"
               >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={20} aria-hidden="true" />
               </button>
-              <h1 className="font-bold text-lg">Transactions</h1>
+              <h1 className="font-bold text-lg text-white">Transactions</h1>
               <button 
                 onClick={() => setIsSearching(true)}
+                aria-label="Search transactions"
                 className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1E293B]"
               >
-                <Search size={20} />
+                <Search size={20} aria-hidden="true" />
               </button>
             </motion.div>
           ) : (
             <motion.div key="search-header" initial={{ opacity: 0, width: '0%' }} animate={{ opacity: 1, width: '100%' }} exit={{ opacity: 0 }} className="flex-1 flex items-center space-x-3">
               <div className="flex-1 flex items-center bg-[#1E293B] rounded-xl px-4 py-2">
-                <Search size={18} className="text-gray-400 mr-2" />
+                <Search size={18} className="text-gray-400 mr-2" aria-hidden="true" />
                 <input 
                   type="text" 
                   autoFocus
                   placeholder="Search vendor, etc." 
+                  aria-label="Search vendor, etc."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent outline-none flex-1 text-white text-sm placeholder-gray-500"
+                  className="bg-transparent outline-none flex-1 text-white text-sm placeholder-gray-400"
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="ml-2 text-gray-400">
-                    <X size={16} />
+                  <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="ml-2 text-gray-400">
+                    <X size={16} aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -122,6 +125,7 @@ export const HistoryScreen = () => {
       <div className="px-6 py-4 flex space-x-3 overflow-x-auto hide-scrollbar shrink-0">
         <button 
           onClick={() => setFilter('all')}
+          aria-pressed={filter === 'all'}
           className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             filter === 'all' ? 'bg-[#4F46E5] text-white' : 'bg-[#1E293B] text-gray-400'
           }`}
@@ -130,6 +134,7 @@ export const HistoryScreen = () => {
         </button>
         <button 
           onClick={() => setFilter('income')}
+          aria-pressed={filter === 'income'}
           className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             filter === 'income' ? 'bg-[#4F46E5] text-white' : 'bg-[#1E293B] text-gray-400'
           }`}
@@ -138,6 +143,7 @@ export const HistoryScreen = () => {
         </button>
         <button 
           onClick={() => setFilter('expense')}
+          aria-pressed={filter === 'expense'}
           className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             filter === 'expense' ? 'bg-[#4F46E5] text-white' : 'bg-[#1E293B] text-gray-400'
           }`}
@@ -194,8 +200,8 @@ export const HistoryScreen = () => {
         ))}
         
         {filteredTransactions.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-            <Calendar size={48} className="mb-4 opacity-50" />
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <Calendar size={48} className="mb-4 opacity-50" aria-hidden="true" />
             <p>No transactions found</p>
           </div>
         )}
