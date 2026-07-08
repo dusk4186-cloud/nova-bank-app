@@ -11,18 +11,91 @@ export const ProfileScreen = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showPinIntercept, setShowPinIntercept] = useState(false);
+  const [oldPin, setOldPin] = useState(['', '', '', '']);
   
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [smsEnabled, setSMSEnabled] = useState(true);
 
-  // Security toggles
-  const { updateUser } = useBank();
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  // Security & Context
+  const { updateUser, pin, showError, is2FAEnabled, setIs2FAEnabled, updatePin } = useBank();
+  
+  const [pinChangeStep, setPinChangeStep] = useState<'verify_old' | 'set_new' | 'confirm_new'>('verify_old');
+  const [newPin, setNewPin] = useState(['', '', '', '']);
+  const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
+  const [pinError, setPinError] = useState('');
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handlePinChange = (index: number, value: string, currentArr: string[], setArr: React.Dispatch<React.SetStateAction<string[]>>, prefix: string) => {
+    if (value.length > 1) value = value.slice(-1);
+    const newArr = [...currentArr];
+    newArr[index] = value;
+    setArr(newArr);
+    setPinError('');
+    
+    if (value && index < 3) {
+      document.getElementById(`${prefix}-${index + 1}`)?.focus();
+    }
+  };
+
+  const handlePinKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number, currentArr: string[], setArr: React.Dispatch<React.SetStateAction<string[]>>, prefix: string) => {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      const newArr = [...currentArr];
+      if (currentArr[index]) {
+        newArr[index] = '';
+        setArr(newArr);
+      } else if (index > 0) {
+        newArr[index - 1] = '';
+        setArr(newArr);
+        document.getElementById(`${prefix}-${index - 1}`)?.focus();
+      }
+    }
+  };
+
+  const handlePinStepSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinChangeStep === 'verify_old') {
+      if (oldPin.join('') === pin) {
+        setPinChangeStep('set_new');
+        setPinError('');
+      } else {
+        setPinError('Incorrect PIN. Please try again.');
+        setOldPin(['', '', '', '']);
+        document.getElementById('old-pin-0')?.focus();
+      }
+    } else if (pinChangeStep === 'set_new') {
+      setPinChangeStep('confirm_new');
+      setPinError('');
+    } else if (pinChangeStep === 'confirm_new') {
+      if (newPin.join('') === confirmPin.join('')) {
+        updatePin(newPin.join(''));
+        setShowPinIntercept(false);
+        setPinChangeStep('verify_old');
+        setOldPin(['', '', '', '']);
+        setNewPin(['', '', '', '']);
+        setConfirmPin(['', '', '', '']);
+        showError("App PIN updated successfully.", Shield);
+      } else {
+        setPinError('PINs do not match. Try again.');
+        setConfirmPin(['', '', '', '']);
+        document.getElementById('confirm-pin-0')?.focus();
+      }
+    }
+  };
+
+  const closePinModal = () => {
+    setShowPinIntercept(false);
+    setPinChangeStep('verify_old');
+    setOldPin(['', '', '', '']);
+    setNewPin(['', '', '', '']);
+    setConfirmPin(['', '', '', '']);
+    setPinError('');
   };
 
   return (
@@ -88,7 +161,7 @@ export const ProfileScreen = () => {
         </div>
 
         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 px-2">Notifications</h3>
-        <div className="bg-[#1E293B] rounded-3xl p-5 space-y-6 border border-[#334155]/50 mb-8">
+        <div className="bg-[#1E293B] rounded-3xl p-6 space-y-6 border border-[#334155]/50 mb-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <Bell size={20} className="text-gray-400" aria-hidden="true" />
@@ -232,7 +305,7 @@ export const ProfileScreen = () => {
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6">
               
-              <button className="w-full bg-[#1E293B] rounded-2xl p-4 flex items-center justify-between hover:bg-[#334155] transition-colors">
+              <button onClick={() => setShowPinIntercept(true)} className="w-full bg-[#1E293B] rounded-2xl p-4 flex items-center justify-between hover:bg-[#334155] transition-colors">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-[#4F46E5]/10 flex items-center justify-center text-indigo-400">
                     <Lock size={20} aria-hidden="true" />
@@ -245,7 +318,7 @@ export const ProfileScreen = () => {
                 <ChevronRight size={20} className="text-gray-400" aria-hidden="true" />
               </button>
 
-              <div className="bg-[#1E293B] rounded-3xl p-5 space-y-6 border border-[#334155]/50">
+              <div className="bg-[#1E293B] rounded-3xl p-6 space-y-6 border border-[#334155]/50">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-3">
                     <Fingerprint size={20} className="text-[#22C55E]" aria-hidden="true" />
@@ -275,16 +348,84 @@ export const ProfileScreen = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                    onClick={() => setIs2FAEnabled(!is2FAEnabled)}
                     aria-label="Toggle Two-Factor Auth"
-                    aria-pressed={twoFactorEnabled}
-                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${twoFactorEnabled ? 'bg-[#4F46E5] justify-end' : 'bg-[#0F172A] border border-[#334155] justify-start'}`}
+                    aria-pressed={is2FAEnabled}
+                    className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${is2FAEnabled ? 'bg-[#4F46E5] justify-end' : 'bg-[#0F172A] border border-[#334155] justify-start'}`}
                   >
-                    <div className={`w-4 h-4 rounded-full ${twoFactorEnabled ? 'bg-white' : 'bg-gray-400'}`}></div>
+                    <div className={`w-4 h-4 rounded-full ${is2FAEnabled ? 'bg-white' : 'bg-gray-400'}`}></div>
                   </button>
                 </div>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PIN Intercept Modal */}
+      <AnimatePresence>
+        {showPinIntercept && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[60] bg-[#0F172A]/90 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              role="dialog"
+              aria-modal="true"
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1E293B] rounded-[24px] w-full max-w-sm p-6 flex flex-col items-center relative"
+            >
+              <div className="w-full flex justify-end">
+                <button onClick={closePinModal} aria-label="Close dialog" className="text-gray-400 hover:text-white">
+                  <X size={24} aria-hidden="true" />
+                </button>
+              </div>
+              <Lock size={48} className="text-[#4F46E5] mb-4" />
+              <h2 className="text-xl font-bold text-white mb-2">
+                {pinChangeStep === 'verify_old' ? 'Enter Old PIN' : pinChangeStep === 'set_new' ? 'Set New PIN' : 'Confirm New PIN'}
+              </h2>
+              <p className="text-[#93A2B7] text-sm mb-6 text-center">
+                {pinChangeStep === 'verify_old' ? 'Please verify your current 4-digit PIN to continue.' : 'Enter a secure 4-digit PIN.'}
+              </p>
+
+              <form onSubmit={handlePinStepSubmit} className="w-full flex flex-col items-center">
+                <div className="flex justify-center gap-4 mb-4">
+                  {(pinChangeStep === 'verify_old' ? oldPin : pinChangeStep === 'set_new' ? newPin : confirmPin).map((digit, i) => (
+                    <input
+                      key={i}
+                      id={`${pinChangeStep === 'verify_old' ? 'old-pin' : pinChangeStep === 'set_new' ? 'new-pin' : 'confirm-pin'}-${i}`}
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handlePinChange(i, e.target.value, 
+                        pinChangeStep === 'verify_old' ? oldPin : pinChangeStep === 'set_new' ? newPin : confirmPin,
+                        pinChangeStep === 'verify_old' ? setOldPin : pinChangeStep === 'set_new' ? setNewPin : setConfirmPin,
+                        pinChangeStep === 'verify_old' ? 'old-pin' : pinChangeStep === 'set_new' ? 'new-pin' : 'confirm-pin'
+                      )}
+                      onKeyDown={(e) => handlePinKeyDown(e, i, 
+                        pinChangeStep === 'verify_old' ? oldPin : pinChangeStep === 'set_new' ? newPin : confirmPin,
+                        pinChangeStep === 'verify_old' ? setOldPin : pinChangeStep === 'set_new' ? setNewPin : setConfirmPin,
+                        pinChangeStep === 'verify_old' ? 'old-pin' : pinChangeStep === 'set_new' ? 'new-pin' : 'confirm-pin'
+                      )}
+                      className="w-14 h-16 bg-[#0F172A] rounded-2xl text-center text-3xl font-bold text-white outline-none border border-[#334155] focus:border-[#4F46E5] transition-colors"
+                    />
+                  ))}
+                </div>
+                
+                <div aria-live="polite" className="h-6 mb-4">
+                  {pinError && <p className="text-red-500 text-sm">{pinError}</p>}
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={(pinChangeStep === 'verify_old' ? oldPin : pinChangeStep === 'set_new' ? newPin : confirmPin).join('').length < 4}
+                  className="w-full h-14 bg-[#4F46E5] rounded-xl text-white font-bold tracking-[0.4px] hover:bg-indigo-500 transition-colors disabled:opacity-50"
+                >
+                  {pinChangeStep === 'verify_old' ? 'Verify PIN' : pinChangeStep === 'set_new' ? 'Continue' : 'Confirm Update'}
+                </button>
+              </form>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

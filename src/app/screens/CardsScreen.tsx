@@ -110,7 +110,7 @@ export const CardsScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-[#1E293B] rounded-3xl p-5 space-y-5 border border-[#334155]/50"
+          className="bg-[#1E293B] rounded-3xl p-6 space-y-6 border border-[#334155]/50"
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">

@@ -33,7 +33,7 @@ const AccountBalanceRow = ({ acc, formatCurrency }: { acc: any, formatCurrency: 
   }, [isRevealed]);
 
   return (
-    <div className="p-5 rounded-2xl bg-[#0F172A] border border-[#334155]/50 flex flex-col relative overflow-hidden">
+    <div className="p-6 rounded-2xl bg-[#0F172A] border border-[#334155]/50 flex flex-col relative overflow-hidden">
       <div className="flex items-center justify-between z-10 relative">
         <div>
           <p className="font-bold text-sm text-gray-300">{acc.name}</p>
@@ -151,6 +151,21 @@ export const DashboardScreen = () => {
           setBalancePin(['', '', '', '']);
           document.getElementById('bal-pin-0')?.focus();
         }, 500);
+      }
+    }
+  };
+
+  const handleBalancePinKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      const newPin = [...balancePin];
+      if (balancePin[index]) {
+        newPin[index] = '';
+        setBalancePin(newPin);
+      } else if (index > 0) {
+        newPin[index - 1] = '';
+        setBalancePin(newPin);
+        document.getElementById(`bal-pin-${index - 1}`)?.focus();
       }
     }
   };
@@ -285,7 +300,7 @@ export const DashboardScreen = () => {
         >
           <button 
             onClick={() => { setShowCheckBalance(true); setTimeout(() => document.getElementById('bal-pin-0')?.focus(), 100); }}
-            className="flex-1 bg-[#1E293B] hover:bg-[#1E293B]/80 rounded-3xl p-5 flex flex-col items-center justify-center space-y-3 transition-colors shadow-lg border border-[#334155]/50"
+            className="flex-1 bg-[#1E293B] hover:bg-[#1E293B]/80 rounded-3xl p-6 flex flex-col items-center justify-center space-y-3 transition-colors shadow-lg border border-[#334155]/50"
           >
             <div className="w-14 h-14 rounded-full bg-[#4F46E5]/20 flex items-center justify-center text-[#4F46E5]">
               <Wallet size={28} />
@@ -295,7 +310,7 @@ export const DashboardScreen = () => {
           
           <button 
             onClick={() => setShowInsights(true)}
-            className="flex-1 bg-[#1E293B] hover:bg-[#1E293B]/80 rounded-3xl p-5 flex flex-col items-center justify-center space-y-3 transition-colors shadow-lg border border-[#334155]/50"
+            className="flex-1 bg-[#1E293B] hover:bg-[#1E293B]/80 rounded-3xl p-6 flex flex-col items-center justify-center space-y-3 transition-colors shadow-lg border border-[#334155]/50"
           >
             <div className="w-14 h-14 rounded-full bg-[#22C55E]/20 flex items-center justify-center text-[#22C55E]">
               <PieChart size={28} />
@@ -309,7 +324,7 @@ export const DashboardScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-[#1E293B]/40 rounded-3xl p-5 border border-[#1E293B]"
+          className="bg-[#1E293B]/40 rounded-3xl p-6 border border-[#1E293B]"
         >
           <div className="flex justify-between items-end mb-6">
             <h3 className="font-bold text-lg">Pending Bills</h3>
@@ -345,7 +360,7 @@ export const DashboardScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-[#1E293B]/40 rounded-3xl p-5 border border-[#1E293B]"
+          className="bg-[#1E293B]/40 rounded-3xl p-6 border border-[#1E293B]"
         >
           <div className="flex justify-between items-end mb-6">
             <h3 className="font-bold text-lg">Explore Services</h3>
@@ -472,12 +487,26 @@ export const DashboardScreen = () => {
                         maxLength={1}
                         value={digit}
                         onChange={(e) => handleBalancePinChange(i, e.target.value)}
+                        onKeyDown={(e) => handleBalancePinKeyDown(e, i)}
                         className={`w-14 h-16 bg-[#0F172A] rounded-2xl text-center text-3xl font-bold text-white outline-none border transition-colors ${pinError ? 'border-red-500' : 'border-transparent focus:border-indigo-400'}`}
                       />
                     ))}
                   </div>
-                  <div aria-live="polite">
-                    {pinError && <p className="text-red-500 text-sm animate-pulse">Incorrect PIN. Try again.</p>}
+                  <div aria-live="polite" className="h-12 flex flex-col items-center justify-center">
+                    {pinError && (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-2">
+                        <p className="text-red-500 text-sm animate-pulse">Incorrect PIN. Try again.</p>
+                        <button 
+                          onClick={() => {
+                            closeBalanceModal();
+                            navigate('/profile');
+                          }}
+                          className="text-[#4F46E5] text-xs font-bold hover:underline"
+                        >
+                          Forgot PIN?
+                        </button>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
               ) : (

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export type User = {
   name: string;
@@ -24,8 +24,14 @@ export type Account = {
   number: string;
 };
 
+export type GlobalError = {
+  message: string;
+  icon?: any;
+};
+
 type BankContextType = {
   user: User | null;
+  savedUser: User | null;
   pin: string;
   accounts: Account[];
   transactions: Transaction[];
@@ -33,13 +39,22 @@ type BankContextType = {
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   transfer: (fromId: string, to: string, amount: number, note: string) => void;
+  globalError: GlobalError | null;
+  showError: (message: string, icon?: any) => void;
+  clearError: () => void;
+  is2FAEnabled: boolean;
+  setIs2FAEnabled: (enabled: boolean) => void;
+  updatePin: (newPin: string) => void;
 };
 
 const BankContext = createContext<BankContextType | undefined>(undefined);
 
 export const BankProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [savedUser, setSavedUser] = useState<User | null>(null);
   const [pin, setPin] = useState<string>('1234'); // Default mock PIN
+  const [globalError, setGlobalError] = useState<GlobalError | null>(null);
+  const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false);
   
   const [accounts, setAccounts] = useState<Account[]>([
     { id: '1', name: 'Main Salary Account', balance: 145000.00, number: '**** 4567' },
@@ -55,6 +70,7 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (userData: User, pinCode: string) => {
     setUser(userData);
+    setSavedUser(userData);
     if (pinCode) setPin(pinCode);
   };
 
@@ -63,7 +79,11 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUser = (updates: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...updates } : null);
+    setUser(prev => {
+      const newUser = prev ? { ...prev, ...updates } : null;
+      if (newUser) setSavedUser(newUser);
+      return newUser;
+    });
   };
 
   const transfer = (fromId: string, to: string, amount: number, note: string) => {
@@ -86,8 +106,23 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
     setTransactions(prev => [newTx, ...prev]);
   };
 
+  const showError = (message: string, icon?: any) => {
+    setGlobalError({ message, icon });
+    setTimeout(() => {
+      setGlobalError(null);
+    }, 4000);
+  };
+
+  const clearError = () => {
+    setGlobalError(null);
+  };
+
+  const updatePin = (newPin: string) => {
+    setPin(newPin);
+  };
+
   return (
-    <BankContext.Provider value={{ user, pin, accounts, transactions, login, logout, updateUser, transfer }}>
+    <BankContext.Provider value={{ user, savedUser, pin, accounts, transactions, login, logout, updateUser, transfer, globalError, showError, clearError, is2FAEnabled, setIs2FAEnabled, updatePin }}>
       {children}
     </BankContext.Provider>
   );
