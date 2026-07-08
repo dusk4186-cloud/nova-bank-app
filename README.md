@@ -12,17 +12,18 @@ The core of this project is the UI/UX design. View the original design flow and 
 
 ### 🚀 Live High-Fidelity Prototype
 To truly experience the design as a user would, I facilitated the creation of a fully interactive web-based prototype:
-- **[Live Interactive App (Netlify)](https://novabank-app.netlify.app/)**
+- **[Live Interactive App (Vercel)](https://nova-bank-app-ebon.vercel.app/login)**
 
-*Note: This live app is a high-fidelity simulation built to demonstrate the UX logic in a realistic environment.*
-
----
-
-### 🌟 UX Highlights Demonstrated in the Prototype
-- **Error Prevention (Heuristics)**: Smart form validation that disables actions until precise constraints (e.g., 10-digit phone numbers) are met, guiding the user visually and preventing frustration.
-- **Dynamic Feedback**: Real-time updates to UI elements (like spending insights and pie charts) based on user interaction, demonstrating how the interface responds to data changes.
-- **Frictionless Authentication**: A seamless, passwordless OTP flow designed to mirror modern FinTech standards, keeping the user informed at every step.
-- **Contextual Security**: Designing for persistent device-level biometric setup (FaceID/Fingerprint) across sessions without compromising user convenience.
+*Note: This live app is a high-fidelity simulation built using React and Tailwind CSS to demonstrate the UX logic and state management in a realistic environment.*
 
 ---
-*This project is a showcase of Interface Design, User Experience, and Interaction Design.*
+
+### 🌟 UX & Engineering Highlights Demonstrated
+- **Interactive State Engineering**: Implemented a mandatory 3-step security gating system for PIN resets (`verify_old` &rarr; `set_new` &rarr; `confirm_new`) and a seamless Two-Factor Authentication intercept flow.
+- **Smart Input Mechanics**: Engineered robust programmatic focus shifting and backspace routing for 4-digit PINs and 6-digit OTP fields to deliver frictionless, native-feeling interactions.
+- **Global Error Infrastructure**: A centralized, animated `<ErrorBanner/>` that intercepts and handles negative path states (Network offline events, invalid auth attempts, transaction failures).
+- **Design System Enforcement**: Strict adherence to a 1.25 (Major Third) typography scaling ratio and consistent 8px vertical rhythm constraints mapped natively to Tailwind utility classes.
+- **Dynamic Feedback & Validation**: Real-time updates to UI elements (like spending insights) and intelligent form validation that guides the user visually and prevents frustration.
+
+---
+*This project is a showcase of Interface Design, User Experience, and Frontend Engineering.*
