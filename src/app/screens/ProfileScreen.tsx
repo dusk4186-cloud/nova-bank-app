@@ -222,7 +222,7 @@ export const ProfileScreen = () => {
 
         {/* Version info */}
         <div className="text-center mt-12 mb-4">
-          <p className="text-xs text-gray-400">Nova Bank v1.0.0</p>
+          <p className="text-xs text-gray-400">Nova Bank v1.0.4</p>
         </div>
       </div>
 
