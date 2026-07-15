@@ -36,7 +36,7 @@ export const CardsScreen = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative w-full aspect-[1.586/1] rounded-2xl p-6 overflow-hidden flex flex-col justify-between shadow-2xl"
+          className="relative w-full aspect-[1.586/1] rounded-2xl p-6 pb-8 overflow-hidden flex flex-col justify-between shadow-2xl"
           style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #1E1B4B 100%)' }}
         >
           {/* Decorative shapes */}
@@ -53,7 +53,7 @@ export const CardsScreen = () => {
             </div>
           </div>
 
-          <div className="relative z-10 space-y-4">
+          <div className="relative z-10 space-y-3">
             <div className="flex items-center space-x-2">
               <p className="text-white text-2xl font-mono tracking-[0.2em] shadow-sm">
                 {showCardNumber ? '4567 8901 2345 6789' : '•••• •••• •••• 6789'}
