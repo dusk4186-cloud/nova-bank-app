@@ -16,6 +16,7 @@ export const TransferScreen = () => {
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [note, setNote] = useState(prefill?.note || '');
   
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [finalBalance, setFinalBalance] = useState<number | null>(null);
   
@@ -69,20 +70,42 @@ export const TransferScreen = () => {
 
   const handleTransfer = () => {
     if (numAmount > 0 && recipient && !isInsufficient && activeAccount) {
-      const newBalance = activeAccount.balance - numAmount;
-      setFinalBalance(newBalance);
-      
-      transfer(selectedAccount, recipient, numAmount, note || `Transfer via ${paymentMethod}`);
-      setIsSuccess(true);
+      setIsProcessing(true);
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 3500);
+        const newBalance = activeAccount.balance - numAmount;
+        setFinalBalance(newBalance);
+        
+        transfer(selectedAccount, recipient, numAmount, note || `Transfer via ${paymentMethod}`);
+        setIsProcessing(false);
+        setIsSuccess(true);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3500);
+      }, 1500);
     }
   };
 
   return (
     <div className="flex-1 flex flex-col relative bg-[#0F172A] h-full" role="presentation" onClick={() => setIsAmountFocused(false)}>
       <AnimatePresence>
+        {isProcessing && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-[#0F172A]"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex flex-col items-center w-full px-6"
+            >
+              <div className="w-20 h-20 rounded-full border-4 border-indigo-500/20 border-t-[#4F46E5] animate-spin mb-6" />
+              <h2 className="text-xl font-bold mb-2 text-white">Processing Payment...</h2>
+              <p className="text-sm text-gray-400">Securing transfer with bank gateway</p>
+            </motion.div>
+          </motion.div>
+        )}
         {isSuccess && (
           <motion.div 
             initial={{ opacity: 0 }}
