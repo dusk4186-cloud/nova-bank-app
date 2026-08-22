@@ -1,25 +1,60 @@
 import { createBrowserRouter } from "react-router";
 import { MobileLayout } from "./components/MobileLayout";
-import { SplashScreen } from "./screens/SplashScreen";
-import { LoginScreen } from "./screens/LoginScreen";
-import { DashboardScreen } from "./screens/DashboardScreen";
-import { TransferScreen } from "./screens/TransferScreen";
-import { HistoryScreen } from "./screens/HistoryScreen";
-import { ProfileScreen } from "./screens/ProfileScreen";
-import { CardsScreen } from "./screens/CardsScreen";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: MobileLayout,
     children: [
-      { index: true, Component: SplashScreen },
-      { path: "login", Component: LoginScreen },
-      { path: "dashboard", Component: DashboardScreen },
-      { path: "transfer", Component: TransferScreen },
-      { path: "history", Component: HistoryScreen },
-      { path: "profile", Component: ProfileScreen },
-      { path: "cards", Component: CardsScreen },
+      { 
+        index: true, 
+        lazy: async () => {
+          const { SplashScreen } = await import("./screens/SplashScreen");
+          return { Component: SplashScreen };
+        } 
+      },
+      { 
+        path: "login", 
+        lazy: async () => {
+          const { LoginScreen } = await import("./screens/LoginScreen");
+          return { Component: LoginScreen };
+        }
+      },
+      { 
+        path: "dashboard", 
+        lazy: async () => {
+          const { DashboardScreen } = await import("./screens/DashboardScreen");
+          return { Component: DashboardScreen };
+        }
+      },
+      { 
+        path: "transfer", 
+        lazy: async () => {
+          const { TransferScreen } = await import("./screens/TransferScreen");
+          return { Component: TransferScreen };
+        }
+      },
+      { 
+        path: "history", 
+        lazy: async () => {
+          const { HistoryScreen } = await import("./screens/HistoryScreen");
+          return { Component: HistoryScreen };
+        }
+      },
+      { 
+        path: "profile", 
+        lazy: async () => {
+          const { ProfileScreen } = await import("./screens/ProfileScreen");
+          return { Component: ProfileScreen };
+        }
+      },
+      { 
+        path: "cards", 
+        lazy: async () => {
+          const { CardsScreen } = await import("./screens/CardsScreen");
+          return { Component: CardsScreen };
+        }
+      },
     ],
   },
 ]);

@@ -24,12 +24,17 @@ export type Account = {
   number: string;
 };
 
+export type Theme = 'light' | 'dark';
+
 export type GlobalError = {
   message: string;
   icon?: any;
 };
 
 type BankContextType = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
   user: User | null;
   savedUser: User | null;
   pin: string;
@@ -47,9 +52,48 @@ type BankContextType = {
   updatePin: (newPin: string) => void;
 };
 
+const THEME_STORAGE_KEY = 'nova_theme';
+
 const BankContext = createContext<BankContextType | undefined>(undefined);
 
 export const BankProvider = ({ children }: { children: ReactNode }) => {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        return savedTheme;
+      }
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const metaThemeColor = document.getElementById('theme-color-meta');
+
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      metaThemeColor?.setAttribute('content', '#0F172A');
+    } else {
+      root.classList.remove('dark');
+      metaThemeColor?.setAttribute('content', '#F8FAFC');
+    }
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (e) {
+      console.warn('Unable to persist theme to localStorage', e);
+    }
+  }, [theme]);
+
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+  };
+
+  const toggleTheme = () => {
+    setThemeState((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
+  };
+
   const [user, setUser] = useState<User | null>(null);
   const [savedUser, setSavedUser] = useState<User | null>(null);
   const [pin, setPin] = useState<string>('1234'); // Default mock PIN
@@ -106,11 +150,13 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
     setTransactions(prev => [newTx, ...prev]);
   };
 
-  const showError = (message: string, icon?: any) => {
+  const showError = (message: string, icon?: any, autoDismissMs: number = 4000) => {
     setGlobalError({ message, icon });
-    setTimeout(() => {
-      setGlobalError(null);
-    }, 4000);
+    if (autoDismissMs > 0) {
+      setTimeout(() => {
+        setGlobalError(null);
+      }, autoDismissMs);
+    }
   };
 
   const clearError = () => {
@@ -122,7 +168,7 @@ export const BankProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <BankContext.Provider value={{ user, savedUser, pin, accounts, transactions, login, logout, updateUser, transfer, globalError, showError, clearError, is2FAEnabled, setIs2FAEnabled, updatePin }}>
+    <BankContext.Provider value={{ theme, setTheme, toggleTheme, user, savedUser, pin, accounts, transactions, login, logout, updateUser, transfer, globalError, showError, clearError, is2FAEnabled, setIs2FAEnabled, updatePin }}>
       {children}
     </BankContext.Provider>
   );

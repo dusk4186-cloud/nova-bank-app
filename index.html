@@ -1,22 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova Bank — Digital Banking Interface</title>
+    <meta name="description" content="Fast, secure digital mobile banking app. Effortlessly manage accounts, check real-time balances, pay bills, and transfer funds instantly." />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta name="theme-color" id="theme-color-meta" content="#0F172A" />
+    <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+    <script>
+      (function () {
+        try {
+          const storedTheme = localStorage.getItem('nova_theme');
+          const activeTheme = storedTheme ? storedTheme : 'dark';
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Mobile Banking App Interface</title>
-      <meta name="description" content="Secure mobile banking app enabling users to check balances, transfer funds, and manage accounts with an intuitive dark-themed interface." />
-      <meta name="robots" content="noindex, nofollow" />
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-      
-    </head>
+          if (activeTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.getElementById('theme-color-meta')?.setAttribute('content', '#0F172A');
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.getElementById('theme-color-meta')?.setAttribute('content', '#F8FAFC');
+          }
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
 
-    <body>
-      
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-      
-    </body>
-  </html>
-  
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

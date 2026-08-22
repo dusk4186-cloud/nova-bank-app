@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export const CardsScreen = () => {
   const navigate = useNavigate();
-  const { user } = useBank();
+  const { user, theme } = useBank();
+  const isDark = theme === 'dark';
   const [showCardNumber, setShowCardNumber] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -17,14 +18,14 @@ export const CardsScreen = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden h-full bg-[#0F172A]">
+    <div className={`flex-1 flex flex-col relative overflow-hidden h-full ${isDark ? 'bg-[#0F172A] text-white' : 'bg-[#F8FAFC] text-slate-900'} transition-colors duration-200`}>
       {/* Header */}
       <div className="px-6 pt-12 pb-6 flex items-center justify-between z-10">
         <h1 className="text-xl font-bold">My Cards</h1>
         <button 
           onClick={() => setShowSettings(true)}
           aria-label="Card settings"
-          className="w-10 h-10 rounded-full flex items-center justify-center bg-[#1E293B] transition-transform active:scale-95"
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#1E293B] shadow-sm border border-slate-200 dark:border-transparent transition-transform active:scale-95 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-[#334155]"
         >
           <Settings size={18} aria-hidden="true" />
         </button>
@@ -37,11 +38,11 @@ export const CardsScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative w-full aspect-[1.586/1] rounded-2xl p-6 pb-8 overflow-hidden flex flex-col justify-between shadow-2xl"
-          style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #1E1B4B 100%)' }}
+          style={{ background: isDark ? 'linear-gradient(135deg, #4F46E5 0%, #1E1B4B 100%)' : 'linear-gradient(135deg, #5e30e1 0%, #31108f 100%)' }}
         >
           {/* Decorative shapes */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black opacity-20 rounded-full -ml-8 -mb-8 blur-xl"></div>
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black opacity-25 rounded-full -ml-8 -mb-8 blur-xl"></div>
           
           <div className="flex justify-between items-start relative z-10">
             <div>
@@ -61,7 +62,7 @@ export const CardsScreen = () => {
               <button 
                 onClick={() => setShowCardNumber(!showCardNumber)}
                 aria-label={showCardNumber ? "Hide card number" : "Show card number"}
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md"
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-md hover:bg-white/20 transition-colors"
               >
                 {showCardNumber ? <EyeOff size={14} className="text-white" aria-hidden="true" /> : <Eye size={14} className="text-white" aria-hidden="true" />}
               </button>
@@ -94,14 +95,17 @@ export const CardsScreen = () => {
           <button 
             onClick={handleCopy}
             aria-label="Copy card details"
-            className="flex-1 py-4 bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-[#334155] transition-colors"
+            className="flex-1 py-4 bg-white dark:bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 border border-slate-200 dark:border-transparent shadow-sm hover:bg-slate-50 dark:hover:bg-[#334155] transition-colors"
           >
-            {copied ? <CheckCircle2 size={24} className="text-green-500" aria-hidden="true" /> : <Copy size={24} className="text-indigo-400" aria-hidden="true" />}
-            <span className="text-xs font-medium text-gray-300">Copy Details</span>
+            {copied ? <CheckCircle2 size={24} className="text-green-500" aria-hidden="true" /> : <Copy size={24} className="text-[#5e30e1] dark:text-indigo-400" aria-hidden="true" />}
+            <span className="text-xs font-medium text-slate-700 dark:text-gray-300">Copy Details</span>
           </button>
-          <button aria-label="Lock Card" className="flex-1 py-4 bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-[#334155] transition-colors">
+          <button 
+            aria-label="Lock Card" 
+            className="flex-1 py-4 bg-white dark:bg-[#1E293B] rounded-2xl flex flex-col items-center justify-center space-y-2 border border-slate-200 dark:border-transparent shadow-sm hover:bg-slate-50 dark:hover:bg-[#334155] transition-colors"
+          >
             <Lock size={24} className="text-[#EF4444]" aria-hidden="true" />
-            <span className="text-xs font-medium text-gray-300">Lock Card</span>
+            <span className="text-xs font-medium text-slate-700 dark:text-gray-300">Lock Card</span>
           </button>
         </motion.div>
 
@@ -110,24 +114,30 @@ export const CardsScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-[#1E293B] rounded-3xl p-6 space-y-6 border border-[#334155]/50"
+          className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 space-y-6 border border-slate-200 dark:border-[#334155]/50 shadow-sm"
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
-                <Shield size={20} />
+                <Shield size={20} aria-hidden="true" />
               </div>
               <div>
-                <p className="font-bold text-sm">Online Transactions</p>
-                <p className="text-xs text-gray-400">Enabled for this card</p>
+                <p className="font-bold text-sm text-slate-900 dark:text-white">Online Transactions</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Enabled for this card</p>
               </div>
             </div>
-            <div className="w-12 h-6 rounded-full bg-[#4F46E5] flex items-center px-1 justify-end">
-              <div className="w-4 h-4 rounded-full bg-white"></div>
-            </div>
+            <button 
+              type="button"
+              role="switch"
+              aria-checked={true}
+              aria-label="Toggle Online Transactions"
+              className="w-12 h-6 rounded-full bg-[#5e30e1] dark:bg-[#4F46E5] flex items-center px-1 justify-end focus:outline-none focus:ring-2 focus:ring-[#5e30e1]"
+            >
+              <div className="w-4 h-4 rounded-full bg-white shadow-xs"></div>
+            </button>
           </div>
 
-          <div className="h-[1px] w-full bg-[#334155]/50"></div>
+          <div className="h-[1px] w-full bg-slate-200 dark:bg-[#334155]/50"></div>
 
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
@@ -135,13 +145,19 @@ export const CardsScreen = () => {
                 <Shield size={20} aria-hidden="true" />
               </div>
               <div>
-                <p className="font-bold text-sm text-white">International Usage</p>
-                <p className="text-xs text-gray-400">Disabled for security</p>
+                <p className="font-bold text-sm text-slate-900 dark:text-white">International Usage</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Disabled for security</p>
               </div>
             </div>
-            <div className="w-12 h-6 rounded-full bg-[#0F172A] flex items-center px-1 justify-start border border-[#334155]">
-              <div className="w-4 h-4 rounded-full bg-gray-400"></div>
-            </div>
+            <button 
+              type="button"
+              role="switch"
+              aria-checked={false}
+              aria-label="Toggle International Usage"
+              className="w-12 h-6 rounded-full bg-slate-200 dark:bg-[#0F172A] flex items-center px-1 justify-start border border-slate-300 dark:border-[#334155] focus:outline-none focus:ring-2 focus:ring-[#5e30e1]"
+            >
+              <div className="w-4 h-4 rounded-full bg-slate-500 dark:bg-slate-400 shadow-xs"></div>
+            </button>
           </div>
         </motion.div>
       </div>
@@ -151,50 +167,50 @@ export const CardsScreen = () => {
         {showSettings && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-end justify-center"
+            className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center"
           >
             <motion.div 
               role="dialog"
               aria-modal="true"
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-[#1E293B] rounded-t-3xl w-full p-6 pb-12 flex flex-col relative"
+              className="bg-white dark:bg-[#1E293B] rounded-t-3xl w-full p-6 pb-12 flex flex-col relative border-t border-slate-200 dark:border-[#334155]/50 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-white">Card Settings</h2>
-                <button onClick={() => setShowSettings(false)} aria-label="Close card settings" className="text-gray-400 hover:text-white">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Card Settings</h2>
+                <button onClick={() => setShowSettings(false)} aria-label="Close card settings" className="text-slate-400 hover:text-slate-900 dark:hover:text-white">
                   <X size={24} aria-hidden="true" />
                 </button>
               </div>
               
               <div className="space-y-4">
-                <button className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#0F172A] hover:bg-black/20 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-[#4F46E5]/20 flex items-center justify-center text-indigo-400">
+                <button className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-slate-100 dark:bg-[#0F172A] hover:bg-slate-200 dark:hover:bg-black/20 transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-[#5e30e1]/10 dark:bg-[#4F46E5]/20 flex items-center justify-center text-[#5e30e1] dark:text-indigo-400">
                     <ShieldAlert size={20} aria-hidden="true" />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-sm text-white">Change PIN</p>
-                    <p className="text-xs text-gray-400">Set a new 4-digit PIN</p>
+                    <p className="font-bold text-sm text-slate-900 dark:text-white">Change PIN</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Set a new 4-digit PIN</p>
                   </div>
                 </button>
 
-                <button className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#0F172A] hover:bg-black/20 transition-colors">
+                <button className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-slate-100 dark:bg-[#0F172A] hover:bg-slate-200 dark:hover:bg-black/20 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
-                    <CardIcon size={20} />
+                    <CardIcon size={20} aria-hidden="true" />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-sm">Request Replacement</p>
-                    <p className="text-xs text-gray-400">If your card is damaged or lost</p>
+                    <p className="font-bold text-sm text-slate-900 dark:text-white">Request Replacement</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">If your card is damaged or lost</p>
                   </div>
                 </button>
 
                 <button className="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#EF4444]/10 hover:bg-[#EF4444]/20 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-[#EF4444]/20 flex items-center justify-center text-[#EF4444]">
-                    <PowerOff size={20} />
+                    <PowerOff size={20} aria-hidden="true" />
                   </div>
                   <div className="text-left text-[#EF4444]">
                     <p className="font-bold text-sm">Block Card</p>
-                    <p className="text-xs opacity-80">Temporarily or permanently disable</p>
+                    <p className="text-xs opacity-90">Temporarily or permanently disable</p>
                   </div>
                 </button>
               </div>
@@ -204,37 +220,51 @@ export const CardsScreen = () => {
       </AnimatePresence>
 
       {/* Bottom Navigation */}
-      <div className="absolute bottom-0 w-full px-6 py-4 border-t z-20 backdrop-blur-lg" style={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(30, 41, 59, 0.5)' }}>
+      <nav 
+        aria-label="Bottom Navigation"
+        className="absolute bottom-0 w-full px-6 py-4 border-t z-20 backdrop-blur-lg transition-colors duration-200" 
+        style={{ 
+          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)', 
+          borderColor: isDark ? 'rgba(30, 41, 59, 0.5)' : '#E2E8F0' 
+        }}
+      >
         <div className="flex justify-between items-center max-w-[280px] mx-auto">
-          <button onClick={() => navigate('/dashboard')} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition-colors">
-            <Wallet size={24} />
+          <button onClick={() => navigate('/dashboard')} aria-label="Home" className="flex flex-col items-center space-y-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Wallet size={24} aria-hidden="true" />
             <span className="text-[10px] font-medium">Home</span>
           </button>
-          <button onClick={() => navigate('/history')} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition-colors">
-            <Search size={24} />
+          <button onClick={() => navigate('/history')} aria-label="History" className="flex flex-col items-center space-y-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Search size={24} aria-hidden="true" />
             <span className="text-[10px] font-medium">History</span>
           </button>
           <div className="relative -top-5">
             <button 
               aria-label="Quick Pay"
-              className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transform transition-transform"
-              style={{ backgroundColor: '#4F46E5' }}
+              className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5e30e1]"
+              style={{ backgroundColor: isDark ? '#4F46E5' : '#5e30e1' }}
             >
               <Zap size={26} color="#FFFFFF" strokeWidth={2.5} aria-hidden="true" />
             </button>
           </div>
-          <button className="flex flex-col items-center space-y-1 text-[#4F46E5]">
-            <CreditCard size={24} />
-            <span className="text-[10px] font-medium">Cards</span>
+          <button aria-label="Cards" aria-current="page" className={`flex flex-col items-center space-y-1 ${isDark ? 'text-[#818cf8]' : 'text-[#5e30e1]'}`}>
+            <CreditCard size={24} aria-hidden="true" />
+            <span className="text-[10px] font-semibold">Cards</span>
           </button>
-          <button onClick={() => navigate('/profile')} className="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition-colors">
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-400 bg-[#4F46E5] flex items-center justify-center text-white text-[10px] font-bold">
+          <button onClick={() => navigate('/profile')} className="flex flex-col items-center space-y-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <div 
+              aria-hidden="true"
+              className="w-6 h-6 rounded-full overflow-hidden border flex items-center justify-center text-white text-[10px] font-bold"
+              style={{ 
+                backgroundColor: isDark ? '#4F46E5' : '#5e30e1',
+                borderColor: isDark ? '#4F46E5' : '#5e30e1'
+              }}
+            >
               {user?.name?.charAt(0).toUpperCase() || 'A'}
             </div>
             <span className="text-[10px] font-medium">Profile</span>
           </button>
         </div>
-      </div>
+      </nav>
     </div>
   );
 };

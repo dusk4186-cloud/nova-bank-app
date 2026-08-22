@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export const LoginScreen = () => {
   const navigate = useNavigate();
-  const { login, savedUser: existingUser, showError, is2FAEnabled } = useBank();
+  const { login, savedUser: existingUser, showError, is2FAEnabled, theme } = useBank();
+  const isDark = theme === 'dark';
   
   const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>('login');
   const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
@@ -276,27 +277,27 @@ export const LoginScreen = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col px-6 pt-16 pb-8 h-full bg-[#0F172A] relative overflow-y-auto overflow-x-hidden hide-scrollbar">
+    <div className={`flex-1 flex flex-col px-6 pt-16 pb-8 h-full ${isDark ? 'bg-[#0F172A] text-white' : 'bg-[#F8FAFC] text-slate-900'} relative overflow-y-auto overflow-x-hidden hide-scrollbar transition-colors duration-200`}>
       
       {/* Resend Modal */}
       <AnimatePresence>
         {showResendModal && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-[#0F172A]/90 backdrop-blur-sm flex items-center justify-center p-4"
+            className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div 
               role="dialog"
               aria-modal="true"
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#1E293B] rounded-[24px] w-full max-w-sm p-6 flex flex-col"
+              className="bg-white dark:bg-[#1E293B] rounded-[24px] w-full max-w-sm p-6 flex flex-col border border-slate-200 dark:border-transparent shadow-2xl"
             >
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1 tracking-[0.4px]">How would you like to receive the OTP?</h2>
-                  <p className="text-[#93A2B7] text-xs">Choose your preferred delivery method</p>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1 tracking-[0.4px]">How would you like to receive the OTP?</h2>
+                  <p className="text-slate-500 dark:text-[#93A2B7] text-xs">Choose your preferred delivery method</p>
                 </div>
-                <button onClick={() => setShowResendModal(false)} aria-label="Close dialog" className="text-gray-400 hover:text-white -mt-8">
+                <button onClick={() => setShowResendModal(false)} aria-label="Close dialog" className="text-slate-400 hover:text-slate-900 dark:hover:text-white -mt-8">
                   <X size={24} aria-hidden="true" />
                 </button>
               </div>
@@ -306,15 +307,15 @@ export const LoginScreen = () => {
                   <button 
                     key={method}
                     onClick={() => setResendMethod(method)}
-                    className="w-full bg-[#0F172A] h-14 rounded-xl relative flex items-center px-4"
+                    className="w-full bg-slate-100 dark:bg-[#0F172A] h-14 rounded-xl relative flex items-center px-4"
                   >
-                    <div className={`absolute inset-0 border-2 rounded-xl pointer-events-none transition-colors ${resendMethod === method ? 'border-[#4F46E5]' : 'border-[#334155]'}`} />
-                    <div className="w-5 h-5 rounded-full border-2 border-[#475569] flex items-center justify-center mr-3">
-                      {resendMethod === method && <div className="w-2.5 h-2.5 rounded-full bg-[#4F46E5]" />}
+                    <div className={`absolute inset-0 border-2 rounded-xl pointer-events-none transition-colors ${resendMethod === method ? (isDark ? 'border-[#4F46E5]' : 'border-[#5e30e1]') : 'border-slate-200 dark:border-[#334155]'}`} />
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-400 dark:border-[#475569] flex items-center justify-center mr-3">
+                      {resendMethod === method && <div className={`w-2.5 h-2.5 rounded-full ${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1]'}`} />}
                     </div>
                     <div className="text-left">
-                      <p className="text-white text-sm font-bold tracking-[0.4px] leading-tight">{method}</p>
-                      <p className="text-[#93A2B7] text-xs leading-tight">
+                      <p className="text-slate-900 dark:text-white text-sm font-bold tracking-[0.4px] leading-tight">{method}</p>
+                      <p className="text-slate-500 dark:text-[#93A2B7] text-xs leading-tight">
                         {method === 'Email' ? 'alex@example.com' : method === 'SMS' ? '+91 9876543210' : 'Email and SMS'}
                       </p>
                     </div>
@@ -324,7 +325,7 @@ export const LoginScreen = () => {
 
               <button 
                 onClick={handleResendConfirm}
-                className="w-full h-14 bg-[#334155] rounded-xl text-white font-bold tracking-[0.4px] hover:bg-[#475569] transition-colors"
+                className="w-full h-14 bg-slate-200 dark:bg-[#334155] rounded-xl text-slate-800 dark:text-white font-bold tracking-[0.4px] hover:bg-slate-300 dark:hover:bg-[#475569] transition-colors"
               >
                 Continue
               </button>
@@ -335,10 +336,10 @@ export const LoginScreen = () => {
         {showResendSuccess && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[60] bg-[#0c1222]/95 backdrop-blur-sm flex items-center justify-center flex-col"
+            className="absolute inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center flex-col"
           >
             <div className="w-20 h-20 bg-[#22C55E] rounded-full flex items-center justify-center mb-6">
-              <CheckCircle2 size={40} color="#0c1222" />
+              <CheckCircle2 size={40} color="#FFFFFF" />
             </div>
             <h2 className="text-2xl font-bold text-white tracking-[0.4px]">OTP has been sent</h2>
             <h2 className="text-2xl font-bold text-white tracking-[0.4px]">successfully!</h2>
@@ -351,7 +352,7 @@ export const LoginScreen = () => {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-[#0F172A]"
+            className={`absolute inset-0 z-50 flex items-center justify-center ${isDark ? 'bg-[#0F172A]' : 'bg-[#F8FAFC]'}`}
           >
             <motion.div 
               role="alert"
@@ -364,15 +365,15 @@ export const LoginScreen = () => {
               <div className="w-24 h-24 rounded-full flex items-center justify-center bg-[#22C55E]/20 mb-6">
                 <CheckCircle2 size={48} color="#22C55E" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">{mode === 'forgot_password' ? 'Password Updated!' : 'Account Created!'}</h2>
-              <p className="text-gray-400">{mode === 'forgot_password' ? 'Your password has been changed successfully.' : 'Your secure Nova Bank account is ready.'}</p>
+              <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">{mode === 'forgot_password' ? 'Password Updated!' : 'Account Created!'}</h2>
+              <p className="text-slate-500 dark:text-gray-400">{mode === 'forgot_password' ? 'Your password has been changed successfully.' : 'Your secure Nova Bank account is ready.'}</p>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {step !== 'credentials' && !isSuccess && (
-        <button onClick={goBack} aria-label="Go back" className="absolute top-12 left-6 w-10 h-10 flex items-center justify-center bg-[#1E293B] rounded-full z-10">
+        <button onClick={goBack} aria-label="Go back" className="absolute top-12 left-6 w-10 h-10 flex items-center justify-center bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-transparent text-slate-700 dark:text-white rounded-full z-10 shadow-xs">
           <ArrowLeft size={20} aria-hidden="true" />
         </button>
       )}
@@ -383,7 +384,10 @@ export const LoginScreen = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: '#4F46E5' }}>
+          <div 
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-md" 
+            style={{ backgroundColor: isDark ? '#4F46E5' : '#5e30e1' }}
+          >
             <Wallet size={32} color="#FFFFFF" />
           </div>
           
@@ -393,7 +397,7 @@ export const LoginScreen = () => {
                 <h1 className="text-3xl font-bold mb-2">
                   {mode === 'register' ? 'Create Account' : 'Welcome back'}
                 </h1>
-                <p className="text-gray-400">
+                <p className="text-slate-500 dark:text-gray-400">
                   {mode === 'register' ? 'Sign up to get started' : 'Sign in to access your account'}
                 </p>
               </motion.div>
@@ -401,37 +405,37 @@ export const LoginScreen = () => {
             {step === 'forgot_request' && (
               <motion.div key="f-req" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Reset Password</h1>
-                <p className="text-gray-400">Enter your email to receive a reset code</p>
+                <p className="text-slate-500 dark:text-gray-400">Enter your email to receive a reset code</p>
               </motion.div>
             )}
             {step === 'forgot_otp' && (
               <motion.div key="f-otp" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Verify Code</h1>
-                <p className="text-gray-400">Enter the 6-digit code we sent you</p>
+                <p className="text-slate-500 dark:text-gray-400">Enter the 6-digit code we sent you</p>
               </motion.div>
             )}
             {step === 'forgot_reset' && (
               <motion.div key="f-reset" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Create New Password</h1>
-                <p className="text-gray-400">Make sure it's secure and unique</p>
+                <p className="text-slate-500 dark:text-gray-400">Make sure it's secure and unique</p>
               </motion.div>
             )}
             {step === 'otp' && (
               <motion.div key="otp" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Verify OTP</h1>
-                <p className="text-gray-400">Secure your account</p>
+                <p className="text-slate-500 dark:text-gray-400">Secure your account</p>
               </motion.div>
             )}
             {step === 'pin' && (
               <motion.div key="pin" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Set up PIN</h1>
-                <p className="text-gray-400">Create a 4-digit PIN for quick app access</p>
+                <p className="text-slate-500 dark:text-gray-400">Create a 4-digit PIN for quick app access</p>
               </motion.div>
             )}
             {step === 'biometric_setup' && (
               <motion.div key="bio" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <h1 className="text-3xl font-bold mb-2">Enable Biometrics</h1>
-                <p className="text-gray-400">Use your fingerprint for faster and more secure logins</p>
+                <p className="text-slate-500 dark:text-gray-400">Use your fingerprint for faster and more secure logins</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -446,18 +450,18 @@ export const LoginScreen = () => {
               className="space-y-4"
             >
               {mode === 'login' && (
-                <div className="flex bg-[#1E293B] rounded-xl p-1 mb-6">
+                <div className="flex bg-slate-100 dark:bg-[#1E293B] rounded-xl p-1 mb-6 border border-slate-200 dark:border-transparent">
                   <button 
                     type="button"
                     onClick={() => setAuthMethod('email')}
-                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${authMethod === 'email' ? 'bg-[#4F46E5] text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${authMethod === 'email' ? `${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1]'} text-white font-semibold shadow-xs` : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}
                   >
                     Email
                   </button>
                   <button 
                     type="button"
                     onClick={() => setAuthMethod('phone')}
-                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${authMethod === 'phone' ? 'bg-[#4F46E5] text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${authMethod === 'phone' ? `${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1]'} text-white font-semibold shadow-xs` : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}
                   >
                     Phone
                   </button>
@@ -467,29 +471,29 @@ export const LoginScreen = () => {
               {mode === 'register' && (
                 <>
                   <div className="space-y-1">
-                    <label htmlFor="full-name" className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+                    <label htmlFor="full-name" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Full Name</label>
                     <input 
                       id="full-name"
                       type="text" 
                       placeholder="Alex Doe" 
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
+                      className="w-full px-4 py-4 rounded-xl border border-slate-300 dark:border-[#1E293B] focus:border-[#5e30e1] dark:focus:border-[#4F46E5] focus:ring-2 focus:ring-[#5e30e1]/20 outline-none transition-colors bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white shadow-xs"
                       required
                     />
                   </div>
                   
                   <div className="space-y-1">
-                    <label htmlFor="phone-reg" className="text-sm font-medium text-gray-300 ml-1">Phone Number</label>
-                    <div className="flex bg-[#1E293B] rounded-xl overflow-hidden border border-transparent focus-within:border-[#4F46E5] transition-colors">
-                      <div className="px-4 py-4 bg-[#0F172A]/50 text-gray-400 font-medium" aria-hidden="true">+91</div>
+                    <label htmlFor="phone-reg" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Phone Number</label>
+                    <div className="flex bg-white dark:bg-[#1E293B] rounded-xl overflow-hidden border border-slate-300 dark:border-transparent focus-within:border-[#5e30e1] dark:focus-within:border-[#4F46E5] focus-within:ring-2 focus-within:ring-[#5e30e1]/20 transition-colors shadow-xs">
+                      <div className="px-4 py-4 bg-slate-100 dark:bg-[#0F172A]/50 text-slate-700 dark:text-slate-300 font-medium" aria-hidden="true">+91</div>
                       <input 
                         id="phone-reg"
                         type="tel" 
                         placeholder="98765 43210" 
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full px-4 py-4 bg-transparent outline-none text-white font-medium"
+                        className="w-full px-4 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium"
                         required
                       />
                     </div>
@@ -499,14 +503,14 @@ export const LoginScreen = () => {
               
               {(mode === 'register' || authMethod === 'email' || mode === 'forgot_password') && (
                 <div className="space-y-1">
-                  <label htmlFor="email" className="text-sm font-medium text-gray-300 ml-1">Email</label>
+                  <label htmlFor="email" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Email</label>
                   <input 
                     id="email"
                     type="email" 
                     placeholder="alex@example.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white"
+                    className="w-full px-4 py-4 rounded-xl border border-slate-300 dark:border-[#1E293B] focus:border-[#5e30e1] dark:focus:border-[#4F46E5] focus:ring-2 focus:ring-[#5e30e1]/20 outline-none transition-colors bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white shadow-xs"
                     required
                   />
                 </div>
@@ -514,16 +518,16 @@ export const LoginScreen = () => {
 
               {mode === 'login' && authMethod === 'phone' && (
                 <div className="space-y-1">
-                  <label htmlFor="phone-login" className="text-sm font-medium text-gray-300 ml-1">Phone Number</label>
-                  <div className="flex bg-[#1E293B] rounded-xl overflow-hidden border border-transparent focus-within:border-[#4F46E5] transition-colors">
-                    <div className="px-4 py-4 bg-[#0F172A]/50 text-gray-400 font-medium" aria-hidden="true">+91</div>
+                  <label htmlFor="phone-login" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Phone Number</label>
+                  <div className="flex bg-white dark:bg-[#1E293B] rounded-xl overflow-hidden border border-slate-300 dark:border-transparent focus-within:border-[#5e30e1] dark:focus-within:border-[#4F46E5] focus-within:ring-2 focus-within:ring-[#5e30e1]/20 transition-colors shadow-xs">
+                    <div className="px-4 py-4 bg-slate-100 dark:bg-[#0F172A]/50 text-slate-700 dark:text-slate-300 font-medium" aria-hidden="true">+91</div>
                     <input 
                       id="phone-login"
                       type="tel" 
                       placeholder="98765 43210" 
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-4 bg-transparent outline-none text-white font-medium"
+                      className="w-full px-4 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium"
                       required
                     />
                   </div>
@@ -533,7 +537,7 @@ export const LoginScreen = () => {
               {/* Password field - hide if logging in with phone or forgot_password mode */}
               {!(mode === 'login' && authMethod === 'phone') && mode !== 'forgot_password' && (
                 <div className="space-y-1 relative">
-                  <label htmlFor="password" className="text-sm font-medium text-gray-300 ml-1">Password</label>
+                  <label htmlFor="password" className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Password</label>
                   <div className="relative">
                     <input 
                       id="password"
@@ -541,14 +545,14 @@ export const LoginScreen = () => {
                       placeholder="••••••••" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white pr-12"
+                      className="w-full px-4 py-4 rounded-xl border border-slate-300 dark:border-[#1E293B] focus:border-[#5e30e1] dark:focus:border-[#4F46E5] focus:ring-2 focus:ring-[#5e30e1]/20 outline-none transition-colors bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white pr-12 shadow-xs"
                       required
                     />
                     <button 
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 dark:hover:text-white"
                     >
                       {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
                     </button>
@@ -562,7 +566,7 @@ export const LoginScreen = () => {
                           setMode('forgot_password');
                           setStep('forgot_request');
                         }}
-                        className="text-sm font-medium text-[#4F46E5] hover:text-indigo-400"
+                        className={`text-sm font-semibold ${isDark ? 'text-[#818cf8] hover:text-indigo-400' : 'text-[#5e30e1] hover:text-[#4d23c4]'}`}
                       >
                         Forgot Password?
                       </button>
@@ -570,26 +574,26 @@ export const LoginScreen = () => {
                   )}
 
                   {mode === 'register' && password.length > 0 && (
-                    <div aria-live="polite" className="mt-3 bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-[#1E293B]">
+                    <div aria-live="polite" className="mt-3 bg-slate-100 dark:bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-slate-200 dark:border-[#1E293B]">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 size={14} className={isLengthValid ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                        <span className={isLengthValid ? "text-gray-300" : "text-gray-400"}>9 to 12 characters</span>
+                        <CheckCircle2 size={14} className={isLengthValid ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-600"} aria-hidden="true" />
+                        <span className={isLengthValid ? "text-slate-900 dark:text-slate-200 font-medium" : "text-slate-600 dark:text-slate-400"}>9 to 12 characters</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 size={14} className={hasUpperCase ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                        <span className={hasUpperCase ? "text-gray-300" : "text-gray-400"}>Uppercase letter</span>
+                        <CheckCircle2 size={14} className={hasUpperCase ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-600"} aria-hidden="true" />
+                        <span className={hasUpperCase ? "text-slate-900 dark:text-slate-200 font-medium" : "text-slate-600 dark:text-slate-400"}>Uppercase letter</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 size={14} className={hasLowerCase ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                        <span className={hasLowerCase ? "text-gray-300" : "text-gray-400"}>Lowercase letter</span>
+                        <CheckCircle2 size={14} className={hasLowerCase ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-600"} aria-hidden="true" />
+                        <span className={hasLowerCase ? "text-slate-900 dark:text-slate-200 font-medium" : "text-slate-600 dark:text-slate-400"}>Lowercase letter</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 size={14} className={hasNumber ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                        <span className={hasNumber ? "text-gray-300" : "text-gray-400"}>Number</span>
+                        <CheckCircle2 size={14} className={hasNumber ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-600"} aria-hidden="true" />
+                        <span className={hasNumber ? "text-slate-900 dark:text-slate-200 font-medium" : "text-slate-600 dark:text-slate-400"}>Number</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 size={14} className={hasSymbol ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                        <span className={hasSymbol ? "text-gray-300" : "text-gray-400"}>Special character (!@#$%^&*)</span>
+                        <CheckCircle2 size={14} className={hasSymbol ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-600"} aria-hidden="true" />
+                        <span className={hasSymbol ? "text-slate-900 dark:text-slate-200 font-medium" : "text-slate-600 dark:text-slate-400"}>Special character (!@#$%^&*)</span>
                       </div>
                     </div>
                   )}
@@ -599,7 +603,7 @@ export const LoginScreen = () => {
               <button 
                 type="submit" 
                 disabled={!isFormValid()}
-                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 mt-8 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-[#4F46E5] text-white"
+                className={`w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 mt-8 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-md ${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1] hover:bg-[#4d23c4]'}`}
               >
                 <span>{mode === 'register' ? 'Sign Up' : mode === 'forgot_password' ? 'Send Code' : 'Sign In'}</span>
                 <ChevronRight size={20} />
@@ -615,15 +619,15 @@ export const LoginScreen = () => {
               className="space-y-6"
             >
               <div className="mb-6 text-center">
-                <p className="text-gray-300 text-base leading-relaxed">
+                <p className="text-slate-600 dark:text-gray-300 text-base leading-relaxed">
                   Enter the 6-digit code sent to <br />
                   {(mode === 'login' || mode === 'forgot_password') && authMethod === 'email' ? (
-                    <>your email <span className="text-white font-bold text-lg">{email || 'alex@example.com'}</span></>
+                    <>your email <span className="text-slate-900 dark:text-white font-bold text-lg">{email || 'alex@example.com'}</span></>
                   ) : (
-                    <span className="text-white font-bold text-lg">+91 {phone || '9876543210'}</span>
+                    <span className="text-slate-900 dark:text-white font-bold text-lg">+91 {phone || '9876543210'}</span>
                   )}
                 </p>
-                <div className="mt-5 text-white font-medium">Time left: {formatTime(timeLeft)}</div>
+                <div className="mt-5 text-slate-800 dark:text-white font-medium">Time left: {formatTime(timeLeft)}</div>
               </div>
 
               <div className="flex justify-between gap-2">
@@ -638,7 +642,7 @@ export const LoginScreen = () => {
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(e, i)}
                     disabled={isLockedOut}
-                    className="w-12 h-14 bg-[#1E293B] rounded-xl text-center text-xl font-bold text-white outline-none border border-transparent focus:border-[#4F46E5] transition-colors"
+                    className={`w-12 h-14 bg-white dark:bg-[#1E293B] rounded-xl text-center text-xl font-bold text-slate-900 dark:text-white outline-none border border-slate-300 dark:border-transparent ${isDark ? 'focus:border-[#4F46E5]' : 'focus:border-[#5e30e1] focus:ring-2 focus:ring-[#5e30e1]/20'} transition-colors shadow-xs`}
                   />
                 ))}
               </div>
@@ -648,9 +652,9 @@ export const LoginScreen = () => {
                   type="button" 
                   onClick={handlePasteOTP}
                   disabled={isLockedOut}
-                  className="bg-[#1E293B] px-4 py-2 rounded-full text-xs font-medium text-gray-300 flex items-center gap-2 border border-[#334155] shadow-lg active:scale-95 transition-transform"
+                  className="bg-white dark:bg-[#1E293B] px-4 py-2 rounded-full text-xs font-medium text-slate-700 dark:text-gray-300 flex items-center gap-2 border border-slate-300 dark:border-[#334155] shadow-xs active:scale-95 transition-transform"
                 >
-                  <span className="w-4 h-4 bg-gray-600 rounded flex items-center justify-center text-[8px]">💬</span>
+                  <span className="w-4 h-4 bg-slate-200 dark:bg-gray-600 rounded flex items-center justify-center text-[8px]">💬</span>
                   Paste code from Messages
                 </button>
               </div>
@@ -658,19 +662,19 @@ export const LoginScreen = () => {
               <button 
                 type="submit" 
                 disabled={otp.join('').length < 6 || isLockedOut}
-                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-[#4F46E5] text-white"
+                className={`w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-white shadow-md ${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1] hover:bg-[#4d23c4]'}`}
               >
                 <span>Verify & Continue</span>
                 <ArrowRight size={20} />
               </button>
 
-              <div className="text-center text-sm text-[#aea79c]">
+              <div className="text-center text-sm text-slate-500 dark:text-[#aea79c]">
                 Didn't receive code?{' '}
                 <button 
                   type="button" 
                   disabled={timeLeft > 0}
                   onClick={() => setShowResendModal(true)}
-                  className={`font-medium transition-colors ${timeLeft > 0 ? 'text-gray-600 cursor-not-allowed' : 'text-[#5184e7]'}`}
+                  className={`font-medium transition-colors ${timeLeft > 0 ? 'text-slate-400 dark:text-gray-600 cursor-not-allowed' : (isDark ? 'text-[#4F46E5]' : 'text-[#5e30e1]')}`}
                 >
                   Resend
                 </button>
@@ -686,7 +690,7 @@ export const LoginScreen = () => {
               className="space-y-4"
             >
               <div className="space-y-1 relative">
-                <label htmlFor="new-password" className="text-sm font-medium text-gray-300 ml-1">New Password</label>
+                <label htmlFor="new-password" className="text-sm font-medium text-slate-700 dark:text-gray-300 ml-1">New Password</label>
                 <div className="relative">
                   <input 
                     id="new-password"
@@ -694,47 +698,47 @@ export const LoginScreen = () => {
                     placeholder="••••••••" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white pr-12"
+                    className="w-full px-4 py-4 rounded-xl border border-slate-300 dark:border-[#1E293B] focus:border-[#5e30e1] dark:focus:border-[#4F46E5] focus:ring-2 focus:ring-[#5e30e1]/20 outline-none transition-colors bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white pr-12 shadow-xs"
                     required
                   />
                   <button 
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   >
                     {showPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
                   </button>
                 </div>
 
                 {password.length > 0 && (
-                  <div aria-live="polite" className="mt-3 bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-[#1E293B]">
+                  <div aria-live="polite" className="mt-3 bg-slate-100 dark:bg-[#0F172A] p-3 rounded-lg text-xs space-y-2 border border-slate-200 dark:border-[#1E293B]">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={isLengthValid ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                      <span className={isLengthValid ? "text-gray-300" : "text-gray-400"}>9 to 12 characters</span>
+                      <CheckCircle2 size={14} className={isLengthValid ? "text-[#22C55E]" : "text-slate-400 dark:text-gray-600"} aria-hidden="true" />
+                      <span className={isLengthValid ? "text-slate-800 dark:text-gray-300 font-medium" : "text-slate-500 dark:text-gray-400"}>9 to 12 characters</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasUpperCase ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                      <span className={hasUpperCase ? "text-gray-300" : "text-gray-400"}>Uppercase letter</span>
+                      <CheckCircle2 size={14} className={hasUpperCase ? "text-[#22C55E]" : "text-slate-400 dark:text-gray-600"} aria-hidden="true" />
+                      <span className={hasUpperCase ? "text-slate-800 dark:text-gray-300 font-medium" : "text-slate-500 dark:text-gray-400"}>Uppercase letter</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasLowerCase ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                      <span className={hasLowerCase ? "text-gray-300" : "text-gray-400"}>Lowercase letter</span>
+                      <CheckCircle2 size={14} className={hasLowerCase ? "text-[#22C55E]" : "text-slate-400 dark:text-gray-600"} aria-hidden="true" />
+                      <span className={hasLowerCase ? "text-slate-800 dark:text-gray-300 font-medium" : "text-slate-500 dark:text-gray-400"}>Lowercase letter</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasNumber ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                      <span className={hasNumber ? "text-gray-300" : "text-gray-400"}>Number</span>
+                      <CheckCircle2 size={14} className={hasNumber ? "text-[#22C55E]" : "text-slate-400 dark:text-gray-600"} aria-hidden="true" />
+                      <span className={hasNumber ? "text-slate-800 dark:text-gray-300 font-medium" : "text-slate-500 dark:text-gray-400"}>Number</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 size={14} className={hasSymbol ? "text-[#22C55E]" : "text-gray-600"} aria-hidden="true" />
-                      <span className={hasSymbol ? "text-gray-300" : "text-gray-400"}>Special character (!@#$%^&*)</span>
+                      <CheckCircle2 size={14} className={hasSymbol ? "text-[#22C55E]" : "text-slate-400 dark:text-gray-600"} aria-hidden="true" />
+                      <span className={hasSymbol ? "text-slate-800 dark:text-gray-300 font-medium" : "text-slate-500 dark:text-gray-400"}>Special character (!@#$%^&*)</span>
                     </div>
                   </div>
                 )}
               </div>
 
               <div className="space-y-1 relative">
-                <label htmlFor="confirm-password" className="text-sm font-medium text-gray-300 ml-1">Confirm New Password</label>
+                <label htmlFor="confirm-password" className="text-sm font-medium text-slate-700 dark:text-gray-300 ml-1">Confirm New Password</label>
                 <div className="relative">
                   <input 
                     id="confirm-password"
@@ -742,14 +746,14 @@ export const LoginScreen = () => {
                     placeholder="••••••••" 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-4 rounded-xl border border-[#1E293B] focus:border-[#4F46E5] outline-none transition-colors bg-[#1E293B] text-white pr-12"
+                    className="w-full px-4 py-4 rounded-xl border border-slate-300 dark:border-[#1E293B] focus:border-[#5e30e1] dark:focus:border-[#4F46E5] focus:ring-2 focus:ring-[#5e30e1]/20 outline-none transition-colors bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white pr-12 shadow-xs"
                     required
                   />
                   <button 
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   >
                     {showConfirmPassword ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
                   </button>
@@ -759,7 +763,7 @@ export const LoginScreen = () => {
               <button 
                 type="submit" 
                 disabled={!isPasswordValid || password !== confirmPassword}
-                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 mt-8 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-[#4F46E5] text-white"
+                className={`w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 mt-8 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-md ${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1] hover:bg-[#4d23c4]'}`}
               >
                 <span>Update Password</span>
                 <ChevronRight size={20} />
@@ -785,14 +789,14 @@ export const LoginScreen = () => {
                     value={digit}
                     onChange={(e) => handlePinChange(i, e.target.value)}
                     onKeyDown={(e) => handlePinKeyDown(e, i)}
-                    className="w-14 h-16 bg-[#1E293B] rounded-2xl text-center text-3xl font-bold text-white outline-none border border-transparent focus:border-[#4F46E5] transition-colors"
+                    className={`w-14 h-16 bg-white dark:bg-[#1E293B] rounded-2xl text-center text-3xl font-bold text-slate-900 dark:text-white outline-none border border-slate-300 dark:border-transparent ${isDark ? 'focus:border-[#4F46E5]' : 'focus:border-[#5e30e1] focus:ring-2 focus:ring-[#5e30e1]/20'} transition-colors shadow-xs`}
                   />
                 ))}
               </div>
 
-              <div className="bg-[#1E293B]/50 p-4 rounded-xl flex items-start gap-3 border border-[#1E293B]">
+              <div className="bg-slate-100 dark:bg-[#1E293B]/50 p-4 rounded-xl flex items-start gap-3 border border-slate-200 dark:border-[#1E293B]">
                 <ShieldCheck className="text-[#22C55E] shrink-0 mt-0.5" size={20} />
-                <p className="text-xs text-gray-400 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed">
                   Your PIN is securely encrypted. We will ask for this PIN to check balances and authorize transactions.
                 </p>
               </div>
@@ -800,7 +804,7 @@ export const LoginScreen = () => {
               <button 
                 type="submit" 
                 disabled={enteredPin.join('').length < 4}
-                className="w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] bg-[#4F46E5] text-white"
+                className={`w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-white shadow-md ${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1] hover:bg-[#4d23c4]'}`}
               >
                 <Lock size={18} />
                 <span>{mode === 'register' ? 'Continue' : 'Complete Login'}</span>
@@ -814,20 +818,20 @@ export const LoginScreen = () => {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="space-y-8 flex flex-col items-center pt-8"
             >
-              <div className="w-24 h-24 rounded-full bg-[#1E293B] flex items-center justify-center border border-[#334155]">
-                <Fingerprint size={48} className="text-indigo-400" />
+              <div className="w-24 h-24 rounded-full bg-white dark:bg-[#1E293B] flex items-center justify-center border border-slate-200 dark:border-[#334155] shadow-xs">
+                <Fingerprint size={48} className={isDark ? 'text-indigo-400' : 'text-[#5e30e1]'} />
               </div>
               
               <div className="w-full space-y-3">
                 <button 
                   onClick={() => handleBiometricSubmit(true)}
-                  className="w-full py-4 rounded-xl font-bold transition-all active:scale-[0.98] bg-[#4F46E5] text-white"
+                  className={`w-full py-4 rounded-xl font-bold transition-all active:scale-[0.98] text-white shadow-md ${isDark ? 'bg-[#4F46E5]' : 'bg-[#5e30e1] hover:bg-[#4d23c4]'}`}
                 >
                   Enable Biometrics
                 </button>
                 <button 
                   onClick={() => handleBiometricSubmit(false)}
-                  className="w-full py-4 rounded-xl font-bold transition-all active:scale-[0.98] bg-[#1E293B] text-gray-300 border border-[#334155] hover:bg-[#334155]"
+                  className="w-full py-4 rounded-xl font-bold transition-all active:scale-[0.98] bg-slate-100 dark:bg-[#1E293B] text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-[#334155] hover:bg-slate-200 dark:hover:bg-[#334155]"
                 >
                   Skip for Now
                 </button>
@@ -841,11 +845,11 @@ export const LoginScreen = () => {
             <button 
               onClick={() => { executeLogin(true); }}
               aria-label="Login with Biometrics"
-              className="w-16 h-16 rounded-full border border-[#1E293B] flex items-center justify-center hover:bg-[#1E293B] transition-colors"
+              className="w-16 h-16 rounded-full border border-slate-300 dark:border-[#1E293B] bg-white dark:bg-transparent shadow-xs flex items-center justify-center hover:bg-slate-50 dark:hover:bg-[#1E293B] transition-colors"
             >
-              <Fingerprint size={32} className="text-indigo-400" aria-hidden="true" />
+              <Fingerprint size={32} className={isDark ? 'text-indigo-400' : 'text-[#5e30e1]'} aria-hidden="true" />
             </button>
-            <span className="text-xs text-gray-400 mt-3">Login with Biometrics</span>
+            <span className="text-xs text-slate-500 dark:text-gray-400 mt-3">Login with Biometrics</span>
           </div>
         )}
       </div>
@@ -857,10 +861,10 @@ export const LoginScreen = () => {
               setMode(mode === 'register' ? 'login' : 'register');
               setPassword('');
             }}
-            className="text-sm text-gray-400"
+            className="text-sm text-slate-500 dark:text-gray-400"
           >
             {mode === 'register' ? 'Already have an account? ' : "Don't have an account? "}
-            <span style={{ color: '#4F46E5' }} className="font-bold">
+            <span style={{ color: isDark ? '#4F46E5' : '#5e30e1' }} className="font-bold">
               {mode === 'register' ? 'Sign In' : 'Sign Up'}
             </span>
           </button>
